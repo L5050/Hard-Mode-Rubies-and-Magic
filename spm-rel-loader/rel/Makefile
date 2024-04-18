@@ -7,6 +7,8 @@ ifeq ($(strip $(DEVKITPPC)),)
 $(error "Please set DEVKITPPC in your environment. export DEVKITPPC=<path to>devkitPPC")
 endif
 
+export TTYDTOOLS=C:\Users\docaa\Documents\SPM-April-Fools-2024\spm-rel-loader\rel\ttyd-tools
+
 ifeq ($(strip $(TTYDTOOLS)),)
 $(error "Please set TTYDTOOLS in your environment. export TTYDTOOLS=<path to>ttyd-tools")
 endif

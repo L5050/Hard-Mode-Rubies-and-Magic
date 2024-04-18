@@ -142,6 +142,7 @@
 800d9060:evtChildEntry
 800d9370:evtBrotherEntry
 800d9b88:evtCheckID
+800D8A60:make_jump_table
 // more
 
 // evtmgr_cmd.c
@@ -714,12 +715,12 @@
 
 // Sections:
 //   00000000 0 none
-//   80c458fc 1 .text 
-//   80ca9ad8 2 .ctors 
-//   80ca9adc 3 .dtors 
-//   80ca9ae8 4 .rodata 
-//   80cf5180 5 .data 
-//   80f64340 6 .bss 
+//   80c458fc 1 .text
+//   80ca9ad8 2 .ctors
+//   80ca9adc 3 .dtors
+//   80ca9ae8 4 .rodata
+//   80cf5180 5 .data
+//   80f64340 6 .bss
 
 // machi.c
 1,1,000052e4:evt_machi_set_elv_descs
