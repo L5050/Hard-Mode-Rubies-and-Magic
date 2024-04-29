@@ -3,7 +3,7 @@
 800030c8:firstRel
 800030cc:lastRel
 
-// Automatically generated from spm.eu0.lst 
+// Automatically generated from spm.eu0.lst
 80004000:memcpy
 80004104:memset
 800293C4:mapDataPtr
@@ -539,6 +539,9 @@
 800d8adc:make_jump_table
 80108a00:evt_npc_wait_axis_movement_unit_end
 800e63cc:evt_eff_exclamation_question
+80101B94:evt_npc_glide_to
+80417870:dimentio_move
+801f3e68:evt_effjigen_TimeEntry
 800f1818:evt_mario_wait_anim
 803cec30:evt_cutscene_pure_heart
 800e5938:evt_eff

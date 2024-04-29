@@ -3,7 +3,7 @@
 800030c8:firstRel
 800030cc:lastRel
 
-// Automatically generated from spm.eu0.lst 
+// Automatically generated from spm.eu0.lst
 80004000:memcpy
 80004104:memset
 800293C4:mapDataPtr
@@ -469,3 +469,4 @@
 8026EB78:Run
 80542e90:SaveStart
 80542e94:SaveEnd
+801F2E8C:evt_effjigen_TimeEntry

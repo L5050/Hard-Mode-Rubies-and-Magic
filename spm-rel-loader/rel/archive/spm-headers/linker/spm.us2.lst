@@ -3,7 +3,7 @@
 800030c8:firstRel
 800030cc:lastRel
 
-// Automatically generated from spm.eu0.lst 
+// Automatically generated from spm.eu0.lst
 80004000:memcpy
 80004104:memset
 80029364:mapDataPtr
@@ -492,3 +492,4 @@
 80275610:OSYieldThread
 80275CB4:OSResumeThread
 802588e8:memcmp
+801F2E8C:evt_effjigen_TimeEntry
