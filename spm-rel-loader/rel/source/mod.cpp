@@ -4,7 +4,6 @@
 #include "evtpatch.h"
 #include "exception.h"
 #include "patch.h"
-#include "romfontexpand.h"
 
 #include <common.h>
 #include <spm/evtmgr_cmd.h>
@@ -29,7 +28,6 @@
 #include <spm/npcdrv.h>
 #include <spm/seqdef.h>
 #include <spm/seqdrv.h>
-#include <spm/rel/an1_04.h>
 #include <msl/stdio.h>
 #include <msl/string.h>
 #include <wii/ipc.h>
@@ -286,8 +284,8 @@ void main()
 
     titleScreenCustomTextPatch();
     checkForDolphin();
-    exceptionPatch(); // Seeky's exception handler from Practice Codes
-    romfontExpand(); // Font expansion patch from Practice Codes
+    //exceptionPatch(); // Seeky's exception handler from Practice Codes
+    //romfontExpand(); // Font expansion patch from Practice Codes
     evtpatch::evtmgrCmdExtensionInit(); // Initialize EVT scripting extension
     hookDimentioScripts();
     hookBleckScripts();
