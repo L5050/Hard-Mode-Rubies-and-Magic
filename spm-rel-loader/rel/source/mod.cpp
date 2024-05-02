@@ -870,7 +870,7 @@ EVT_BEGIN(changeSlowdown)
     ADD(LW(0), 1)
     USER_FUNC(spm::evt_npc::evt_npc_set_hp, "me", LW(0))
     USER_FUNC(spm::evt_npc::evt_npc_set_unitwork, "me", 10, 0)
-    SET(LW(0), 16) 
+    SET(LW(0), 16)
 RETURN_FROM_CALL()
 
 EVT_BEGIN(changeDashAttack)
@@ -1016,9 +1016,9 @@ void main() {
   patchAddXp();
   patchVariables();
   evtpatch::evtmgrCmdExtensionInit(); // Initialize EVT scripting extension
-  hookDimentioScripts();
+  //hookDimentioScripts();
   hookBleckScripts();
-  hookMimiScripts();
+  //hookMimiScripts();
 }
 
 }
