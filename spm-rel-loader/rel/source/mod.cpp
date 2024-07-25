@@ -1018,7 +1018,7 @@ void main() {
   evtpatch::evtmgrCmdExtensionInit(); // Initialize EVT scripting extension
   hookDimentioScripts();
   hookBleckScripts();
-  //hookMimiScripts();
+  hookMimiScripts();
 }
 
 }
