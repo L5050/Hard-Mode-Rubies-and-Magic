@@ -267,5 +267,6 @@ __pycache__/
 build.*
 *.rel
 *.elf
+*.bat
 pcrel*.bin
 private/
