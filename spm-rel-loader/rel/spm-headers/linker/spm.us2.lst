@@ -654,3 +654,4 @@
 8010284C:evt_npc_set_hp
 801026CC:evt_npc_get_hp
 8010278C:evt_npc_get_max_hp
+800D9A98:evtDelete

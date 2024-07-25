@@ -197,6 +197,7 @@
 800d8df4:evtEntryType
 800d9060:evtChildEntry
 800d9370:evtBrotherEntry
+800d9944:evtDelete
 800d9b88:evtCheckID
 // more
 
