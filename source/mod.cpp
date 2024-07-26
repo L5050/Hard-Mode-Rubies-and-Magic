@@ -107,6 +107,7 @@ int checkBossHealth() {
   spm::npcdrv::NPCWork * NPCWork = spm::npcdrv::npcGetWorkPtr();
   int health = 0;
   s32 plotValue = globals->gsw0;
+  if (globals->gsw[24] == 0) globals->gsw[24] = 1;
   //wii::os::OSReport("%x\n", spm::evtmgr_cmd::evtGetValue(eventEntry, LW(10)));
     if (plotValue == 0x21){
     for (int i = 0; i < 535; i++) {
