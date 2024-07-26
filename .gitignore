@@ -265,6 +265,7 @@ __pycache__/
 
 # Project specific
 build.*
+*.lnk
 *.rel
 *.elf
 *.bat
