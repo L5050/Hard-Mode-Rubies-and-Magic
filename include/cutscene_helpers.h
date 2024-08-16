@@ -4,6 +4,13 @@
 namespace mod::cutscene_helpers
 {
 
+#define SET_CHAR_ANIMS(instanceName, tribeAnimDef) \
+    USER_FUNC(spm::evt_npc::evt_npc_set_property, PTR(instanceName), spm::npcdrv::NPCProperty::ANIMS, PTR(tribeAnimDef))
+
+#define SPAWN_CHARACTER(instanceName, modelName, initialAnimations) \
+    USER_FUNC(spm::evt_npc::evt_npc_entry, PTR(instanceName), PTR(modelName), 0) \
+    SET_CHAR_ANIMS(instanceName, initialAnimations)
+
 #define NPC_SET_ANIM_WAIT(npcName, animId) \
     USER_FUNC(spm::evt_npc::evt_npc_set_anim, PTR(npcName), animId, 1) \
     USER_FUNC(spm::evt_npc::evt_wait_anim_end, PTR(npcName), 1)
