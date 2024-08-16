@@ -591,7 +591,7 @@ s32 itemCharm(spm::evtmgr::EvtEntry * evtEntry, bool firstRun) {
     pouch->killsBeforeNextCharm = 5;
     pouch->charmsRemaining = pouch->charmsRemaining + 5;
   }
-  return firstRun;
+  return 2;
 }
 
 s32 unPauseGame(spm::evtmgr::EvtEntry * evtEntry, bool firstRun) {
@@ -600,12 +600,23 @@ s32 unPauseGame(spm::evtmgr::EvtEntry * evtEntry, bool firstRun) {
   return firstRun;
 }
 
+EVT_DECLARE_USER_FUNC(itemCharm, 0)
+
+EVT_BEGIN(charmAdd)
+  USER_FUNC(itemCharm)
+RETURN_FROM_CALL()
+
 void patchItems() {
   for (int i = 0; i < 33; i++) {
-if (spm::item_event_data::itemEventDataTable[i].itemId == 75) {
-  //spm::item_event_data::itemEventDataTable[i].useScript = charmAdd;
-}}
+    switch (spm::item_event_data::itemEventDataTable[i].itemId) {
+      case 75:
+        spm::evtmgr::EvtScriptCode* mightyTonicUseScript = spm::item_event_data::itemEventDataTable[i].useScript;
+        evtpatch::hookEvtReplace(mightyTonicUseScript, 17, (spm::evtmgr::EvtScriptCode*)charmAdd);
+        break;
+    }
+  }
 }
+
 void patchMarioDamage(){
   marioTakeDamage = patch::hookFunction(spm::mario::marioTakeDamage,
     [](wii::mtx::Vec3 * position, u32 flags, s32 damage)
@@ -969,7 +980,7 @@ void hookBleckScripts()
 void hookMimiScripts()
 {
   spm::evtmgr::EvtScriptCode* mimiUnk2 = spm::npcdrv::npcEnemyTemplates[130].unkScript2;
-    spm::evtmgr::EvtScriptCode* mimiOnHitScript = spm::npcdrv::npcEnemyTemplates[130].unkScript3;
+  spm::evtmgr::EvtScriptCode* mimiOnHitScript = spm::npcdrv::npcEnemyTemplates[130].unkScript3;
   spm::evtmgr::EvtScriptCode* mimiMovement = getInstructionEvtArg(mimiUnk2, 56, 0);
   spm::evtmgr::EvtScriptCode* mimiMainAttack = getInstructionEvtArg(mimiUnk2, 58, 0);
   spm::evtmgr::EvtScriptCode* mimiCeilingMovement = getInstructionEvtArg(mimiUnk2, 60, 0);
