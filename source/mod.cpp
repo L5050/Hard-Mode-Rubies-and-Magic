@@ -30,6 +30,7 @@
 #include <spm/mario.h>
 #include <spm/spmario.h>
 #include <spm/mario_pouch.h>
+#include <spm/mario_motion.h>
 #include <spm/seqdef.h>
 #include <spm/npc_dimeen_l.h>
 #include <spm/item_data.h>
@@ -54,7 +55,6 @@ int holee = 0;
 */
 static spm::seqdef::SeqFunc *seq_titleMainReal;
 static spm::seqdef::SeqFunc *seq_gameMainReal;
-
 
 
 static void seq_titleMainOverride(spm::seqdrv::SeqWork *wp)
@@ -817,6 +817,8 @@ void patchVariables() {
        writeWord(&spm::mario::marioCalcDamageToEnemy, 0x94, 0x57FF003C);
         writeWord(&spm::npc_dimeen_l::superDimentioHeadDefenses, 0x0, 0x00000002);
           writeWord(&spm::npc_dimeen_l::superDimentioBodyDefenses, 0x0, 0x00000002);
+            writeWord(spm::mario_motion::marioMotTbl[0x2A].mainFunc, 0x2BC, 0xC002BA98); //Barry patch 1
+              writeWord(spm::mario_motion::marioMotTbl[0x2A].mainFunc, 0x298, 0xC022BA98); //Barry patch 2
 }
 
 /*static void checkForDolphin()
