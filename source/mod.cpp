@@ -428,6 +428,7 @@ static void setBossHP() {
   spm::npcdrv::npcTribes[273].maxHp = 100; //O'Chunks 3
   spm::npcdrv::npcTribes[292].maxHp = 160; //Dimentio 2
   spm::npcdrv::npcTribes[305].maxHp = 25; //Count Bleck
+  spm::npcdrv::npcTribes[309].maxHp = 150; //Super Dimentio
   spm::npcdrv::npcTribes[330].maxHp = 12; //Dark Mario
   spm::npcdrv::npcTribes[331].maxHp = 12; //Dark Luigi
   spm::npcdrv::npcTribes[332].maxHp = 12; //Dark Peach
@@ -941,6 +942,11 @@ EVT_BEGIN(changeBehaviorToAttack)
   END_IF()
 RETURN_FROM_CALL()
 
+EVT_BEGIN(increaseLuigiShits)
+  SET(LW(0), 60000)
+RETURN_FROM_CALL()
+
+
 void hookDimentioScripts()
 {
   spm::evtmgr::EvtScriptCode* dimentioOnSpawn = spm::npcdrv::npcEnemyTemplates[142].onSpawnScript;
@@ -954,6 +960,14 @@ void hookDimentioScripts()
   spm::evtmgr::EvtScriptCode* boxScript = getInstructionEvtArg(mainLogic, 65, 0);
   //evtpatch::hookEvtReplace(boxScript, 17, (spm::evtmgr::EvtScriptCode*)turnNull);
   evtpatch::hookEvtReplace(shootScript, 32, (spm::evtmgr::EvtScriptCode*)turnNull);
+}
+
+void hookSuperDimentioScripts()
+{
+  spm::evtmgr::EvtScriptCode* mainLogic = spm::npcdrv::npcEnemyTemplates[255].unkScript7;
+  evtpatch::hookEvtReplace(mainLogic, 10, (spm::evtmgr::EvtScriptCode*)increaseLuigiShits);
+  spm::evtmgr::EvtScriptCode* throwAttack = getInstructionEvtArg(mainLogic, 65, 0);
+  evtpatch::hookEvt(mainLogic, 21, (spm::evtmgr::EvtScriptCode*)throwAttack);
 }
 
 void hookBleckScripts()
@@ -1031,6 +1045,7 @@ void main() {
   patchVariables();
   evtpatch::evtmgrExtensionInit(); // Initialize EVT scripting extension
   hookDimentioScripts();
+  hookSuperDimentioScripts();
   hookBleckScripts();
   hookMimiScripts();
 }
