@@ -35,6 +35,7 @@
 #include <spm/npc_dimeen_l.h>
 #include <spm/item_data.h>
 //#include <spm/item_event_data.h>
+#include <spm/rel/machi.h>
 #include <wii/os/OSError.h>
 #include <wii/gx.h>
 #include <wii/mtx.h>
@@ -595,6 +596,14 @@ s32 itemCharm(spm::evtmgr::EvtEntry * evtEntry, bool firstRun) {
   return 2;
 }
 
+s32 reduceEnemyRequirements(spm::evtmgr::EvtEntry * evtEntry, bool firstRun) {
+  spm::mario_pouch::MarioPouchWork* pouch = spm::mario_pouch::pouchGetPtr();
+  if (pouch->killsBeforeNextCharm > 1) {
+    pouch->killsBeforeNextCharm = pouch->killsBeforeNextCharm / 2;
+  }
+  return 2;
+}
+
 s32 unPauseGame(spm::evtmgr::EvtEntry * evtEntry, bool firstRun) {
   spm::pausewin::pausewinUnpauseGame();
   spm::spmario::spmarioSystemLevel(0);
@@ -602,20 +611,61 @@ s32 unPauseGame(spm::evtmgr::EvtEntry * evtEntry, bool firstRun) {
 }
 
 EVT_DECLARE_USER_FUNC(itemCharm, 0)
+EVT_DECLARE_USER_FUNC(reduceEnemyRequirements, 0)
+
+EVT_BEGIN(insertNop)
+  SET(LW(0), 0)
+RETURN_FROM_CALL()
 
 EVT_BEGIN(charmAdd)
   USER_FUNC(itemCharm)
 RETURN_FROM_CALL()
 
+EVT_BEGIN(reduceCharmEnemies)
+  USER_FUNC(reduceEnemyRequirements)
+RETURN_FROM_CALL()
+
+EVT_BEGIN(increaseEggDamage)
+  SET(LW(10), 7)
+RETURN_FROM_CALL()
+
+EVT_BEGIN(increaseSnowBunnyDamage1)
+  SET(LW(10), 7)
+RETURN_FROM_CALL()
+
+EVT_BEGIN(increaseSnowBunnyDamage2)
+  SET(LW(10), 8)
+RETURN_FROM_CALL()
+
+EVT_BEGIN(increaseDynamiteDamage)
+  SET(LW(10), 13)
+RETURN_FROM_CALL()
+
 void patchItems() {
-  for (int i = 0; i < 33; i++) {
-    switch (spm::item_event_data::itemEventDataTable[i].itemId) {
-      case 75:
-        spm::evtmgr::EvtScriptCode* mightyTonicUseScript = spm::item_event_data::itemEventDataTable[i].useScript;
-        evtpatch::hookEvtReplace(mightyTonicUseScript, 17, (spm::evtmgr::EvtScriptCode*)charmAdd);
-        break;
-    }
-  }
+  spm::evtmgr::EvtScriptCode* mightyTonicUseScript = spm::item_event_data::getItemUseEvt(75);
+  evtpatch::hookEvtReplace(mightyTonicUseScript, 17, (spm::evtmgr::EvtScriptCode*)charmAdd);
+  spm::evtmgr::EvtScriptCode* default_item_script = spm::item_event_data::getItemUseEvt(104); //Theres no custom script for the turtley leaf so this just grabs the default item callback
+  evtpatch::hookEvt(default_item_script, 67, (spm::evtmgr::EvtScriptCode*)reduceCharmEnemies);
+  evtpatch::hookEvt(default_item_script, 45, (spm::evtmgr::EvtScriptCode*)reduceCharmEnemies);
+  evtpatch::hookEvt(default_item_script, 58, (spm::evtmgr::EvtScriptCode*)charmAdd);
+  evtpatch::hookEvt(default_item_script, 78, (spm::evtmgr::EvtScriptCode*)charmAdd);
+  evtpatch::hookEvt(default_item_script, 129, (spm::evtmgr::EvtScriptCode*)charmAdd);
+  evtpatch::hookEvt(default_item_script, 70, (spm::evtmgr::EvtScriptCode*)charmAdd);
+  evtpatch::hookEvt(default_item_script, 109, (spm::evtmgr::EvtScriptCode*)charmAdd);
+  evtpatch::hookEvt(default_item_script, 113, (spm::evtmgr::EvtScriptCode*)charmAdd);
+  evtpatch::hookEvt(default_item_script, 44, (spm::evtmgr::EvtScriptCode*)charmAdd);
+  spm::evtmgr::EvtScriptCode* eggBomb = spm::item_event_data::getItemUseEvt(160);
+  evtpatch::hookEvtReplace(eggBomb, 18, (spm::evtmgr::EvtScriptCode*)increaseEggDamage);
+  evtpatch::hookEvtReplace(eggBomb, 20, (spm::evtmgr::EvtScriptCode*)increaseDynamiteDamage);
+  spm::evtmgr::EvtScriptCode* snowBunny = spm::item_event_data::getItemUseEvt(148);
+  evtpatch::hookEvtReplace(snowBunny, 16, (spm::evtmgr::EvtScriptCode*)increaseSnowBunnyDamage1);
+  evtpatch::hookEvtReplace(snowBunny, 18, (spm::evtmgr::EvtScriptCode*)increaseSnowBunnyDamage2);
+  evtpatch::hookEvtReplace(snowBunny, 12, (spm::evtmgr::EvtScriptCode*)increaseSnowBunnyDamage2);
+}
+
+void patchCooking() {
+  spm::evtmgr::EvtScriptCode* cookScript = spm::machi::saffronCookingScript;
+  evtpatch::hookEvtReplaceBlock(cookScript, 130, (spm::evtmgr::EvtScriptCode*)insertNop, 189);
 }
 
 void patchMarioDamage(){
@@ -1041,6 +1091,7 @@ void main() {
   setBossDef();
   patchMarioDamage();
   patchItems();
+  patchCooking();
   patchAddXp();
   patchVariables();
   evtpatch::evtmgrExtensionInit(); // Initialize EVT scripting extension
