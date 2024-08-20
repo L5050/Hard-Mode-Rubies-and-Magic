@@ -1091,7 +1091,7 @@ void main() {
   setBossDef();
   patchMarioDamage();
   patchItems();
-  patchCooking();
+  patchCooking(); 
   patchAddXp();
   patchVariables();
   evtpatch::evtmgrExtensionInit(); // Initialize EVT scripting extension
