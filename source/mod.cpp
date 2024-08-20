@@ -427,7 +427,7 @@ static void setBossHP() {
   spm::npcdrv::npcTribes[316].maxHp = 12; //Bowser 2
   //spm::npcdrv::npcTribes[327].maxHp = 30; //Bonechill
   spm::npcdrv::npcTribes[273].maxHp = 100; //O'Chunks 3
-  spm::npcdrv::npcTribes[292].maxHp = 160; //Dimentio 2
+  spm::npcdrv::npcTribes[292].maxHp = 60; //Dimentio 2
   spm::npcdrv::npcTribes[305].maxHp = 25; //Count Bleck
   spm::npcdrv::npcTribes[309].maxHp = 150; //Super Dimentio
   spm::npcdrv::npcTribes[330].maxHp = 12; //Dark Mario
@@ -1091,7 +1091,7 @@ void main() {
   setBossDef();
   patchMarioDamage();
   patchItems();
-  patchCooking(); 
+  patchCooking();
   patchAddXp();
   patchVariables();
   evtpatch::evtmgrExtensionInit(); // Initialize EVT scripting extension
