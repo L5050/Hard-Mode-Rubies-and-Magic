@@ -427,9 +427,9 @@ static void setBossHP() {
   spm::npcdrv::npcTribes[316].maxHp = 12; //Bowser 2
   //spm::npcdrv::npcTribes[327].maxHp = 30; //Bonechill
   spm::npcdrv::npcTribes[273].maxHp = 100; //O'Chunks 3
-  spm::npcdrv::npcTribes[292].maxHp = 60; //Dimentio 2
+  spm::npcdrv::npcTribes[292].maxHp = 5; //Dimentio 2
   spm::npcdrv::npcTribes[305].maxHp = 25; //Count Bleck
-  spm::npcdrv::npcTribes[309].maxHp = 150; //Super Dimentio
+  spm::npcdrv::npcTribes[309].maxHp = 160; //Super Dimentio
   spm::npcdrv::npcTribes[330].maxHp = 12; //Dark Mario
   spm::npcdrv::npcTribes[331].maxHp = 12; //Dark Luigi
   spm::npcdrv::npcTribes[332].maxHp = 12; //Dark Peach
@@ -786,24 +786,24 @@ void patchMarioDamage(){
                 spm::npcdrv::NPCEntry * voidEntry = spm::npcdrv::npcEntryFromSetupEnemy(0, &pos, 198, &miscSetupData);
                 voidEntry->partsList = spm::npcdrv::npcTribes[307].partsList;
               }*/
-              if (damageType == 12) {
-                //barry damage type
-              }
               int damage = 0;
               switch(tribeId) {
-                case 295:
+                case 270:
+                damage = 100;
+                break;
+                case 272:
                 damage = 1;
                 break;
                 case 273:
                 damage = 2;
                 break;
-                case 272:
+                case 286:
                 damage = 1;
                 break;
-                case 270:
-                damage = 100;
+                case 292:
+                return 1;
                 break;
-                case 286:
+                case 295:
                 damage = 1;
                 break;
                 case 305:
