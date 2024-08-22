@@ -787,6 +787,7 @@ void patchMarioDamage(){
                 voidEntry->partsList = spm::npcdrv::npcTribes[307].partsList;
               }*/
               int damage = 0;
+              if (damageType == 20) return 2; //Shell Shock Damage Nerf
               switch(tribeId) {
                 case 270:
                 damage = 100;
