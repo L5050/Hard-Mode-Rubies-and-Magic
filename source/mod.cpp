@@ -873,23 +873,6 @@ void patchVariables() {
               writeWord(spm::mario_motion::marioMotTbl[0x2A].mainFunc, 0x298, 0xC022BA98); //Barry patch 2
 }
 
-/*static void checkForDolphin()
-{
-    // Thanks to TheLordScruffy for telling me about this
-    gIsDolphin = wii::ipc::IOS_Open("/sys", 1) == -106;
-
-    // If they ever fix that, it'll be in a version that's definitely new enough to have /dev/dolphin
-    if (!gIsDolphin)
-    {
-        int ret = wii::ipc::IOS_Open("/dev/dolphin", 0);
-        if (ret >= 0)
-        {
-            gIsDolphin = true;
-            wii::ipc::IOS_Close(ret);
-        }
-    }
-}*/
-
 /*
     General mod functions
 */
@@ -902,13 +885,7 @@ spm::evtmgr::EvtScriptCode* getInstructionEvtArg(spm::evtmgr::EvtScriptCode* scr
   wii::os::OSReport("%x\n", arg);
   return arg;
 }
-/*
-s32 checkForSpreadshot(spm::evtmgr::EvtEntry * evtEntry, bool firstRun) {
 
-  if (firstRun == false) {}
-  return 2;
-}
-*/
 s32 mimiHittable = 1;
 spm::evtmgr::EvtScriptCode* bleckMovementScript;
 
@@ -962,7 +939,6 @@ RETURN_FROM_CALL()
 EVT_BEGIN(returnToAttackCalc2)
 IF_LARGE(LW(0), 29)
 IF_SMALL(LW(0), 39)
-  //RUN_CHILD_EVT(bleckMovementScript)
   SET(LW(0), 25)
 END_IF()
 IF_SMALL(LW(0), 45)
