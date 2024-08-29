@@ -7,7 +7,7 @@ ifeq ($(strip $(DEVKITPPC)),)
 $(error "Please set DEVKITPPC in your environment. export DEVKITPPC=<path to>devkitPPC")
 endif
 
-export TTYDTOOLS=C:\Users\docaa\Documents\SPM-April-Fools-2024\ttyd-tools
+export TTYDTOOLS = ../ttyd-tools
 
 ifeq ($(strip $(TTYDTOOLS)),)
 $(error "Please set TTYDTOOLS in your environment. export TTYDTOOLS=<path to>ttyd-tools")
@@ -58,7 +58,7 @@ else
 TARGET		:=	$(notdir $(CURDIR)).$(VERSION)
 BUILD		:=	build.$(VERSION)
 SOURCES		:=	source $(wildcard source/*) vendor/EASTL/source $(wildcard vendor/EASTL/source/*)
-DATA		:=	data  
+DATA		:=	data
 INCLUDES	:=	include spm-headers/include spm-headers/mod vendor/EABase/include/Common vendor/EABase/include/Common vendor/EASTL/include
 
 #---------------------------------------------------------------------------------
