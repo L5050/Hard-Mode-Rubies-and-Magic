@@ -35,7 +35,7 @@
 #include <spm/npc_dimeen_l.h>
 #include <spm/item_data.h>
 //#include <spm/item_event_data.h>
-#include <spm/rel/machi.h>
+#include <spm/evt_shop.h>
 #include <wii/os/OSError.h>
 #include <wii/gx.h>
 #include <wii/mtx.h>
@@ -664,7 +664,7 @@ void patchItems() {
 }
 
 void patchCooking() {
-  spm::evtmgr::EvtScriptCode* cookScript = spm::machi::saffronCookingScript;
+  spm::evtmgr::EvtScriptCode* cookScript = spm::evt_shop::saffronCookingScript;
   evtpatch::hookEvtReplaceBlock(cookScript, 130, (spm::evtmgr::EvtScriptCode*)insertNop, 189);
 }
 
