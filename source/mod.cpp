@@ -8,6 +8,7 @@
 
 #include <common.h>
 #include <spm/evt_cam.h>
+#include <spm/evt_sub.h>
 #include <spm/evt_door.h>
 #include <spm/evt_eff.h>
 #include <spm/evt_fade.h>
@@ -973,6 +974,23 @@ EVT_BEGIN(increaseLuigiShits)
   SET(LW(0), 60000)
 RETURN_FROM_CALL()
 
+EVT_BEGIN(addBowserLbl)
+  LBL(31)
+RETURN_FROM_CALL()
+
+EVT_BEGIN(changeBowserScript)
+  USER_FUNC(spm::evt_sub::evt_sub_random, 3, LW(0))
+  IF_EQUAL(LW(0), 1)
+    USER_FUNC(spm::evt_npc::evt_npc_set_unitwork, PTR("me"), 0, 4)
+  END_IF()
+RETURN_FROM_CALL()
+
+void hookBowserScripts()
+{
+  //spm::evtmgr::EvtScriptCode* bowserOnSpawn = spm::npcdrv::npcEnemyTemplates[285].onSpawnScript;
+  spm::evtmgr::EvtScriptCode* mainLogic = spm::npcdrv::npcEnemyTemplates[285].unkScript7;
+  evtpatch::hookEvt(mainLogic, 37, (spm::evtmgr::EvtScriptCode*)changeBowserScript);
+}
 
 void hookDimentioScripts()
 {
@@ -1076,6 +1094,7 @@ void main() {
   patchAddXp();
   patchVariables();
   evtpatch::evtmgrExtensionInit(); // Initialize EVT scripting extension
+  hookBowserScripts();
   hookDimentioScripts();
   hookSuperDimentioScripts();
   hookBleckScripts();
