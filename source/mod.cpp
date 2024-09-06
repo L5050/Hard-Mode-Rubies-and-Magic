@@ -974,8 +974,10 @@ EVT_BEGIN(increaseLuigiShits)
   SET(LW(0), 60000)
 RETURN_FROM_CALL()
 
-EVT_BEGIN(addBowserLbl)
-  LBL(31)
+EVT_BEGIN(makeBowserJump)
+  ADD(LW(1), 100)
+  USER_FUNC(spm::evt_mario::evt_mario_get_pos, LW(0), LW(4), LW(5))
+  USER_FUNC(spm::evt_npc::evt_npc_jump_to, "me", LW(0), LW(1), LW(2), FLOAT(0.0), 180)
 RETURN_FROM_CALL()
 
 EVT_BEGIN(changeBowserScript)
@@ -990,6 +992,7 @@ void hookBowserScripts()
   //spm::evtmgr::EvtScriptCode* bowserOnSpawn = spm::npcdrv::npcEnemyTemplates[285].onSpawnScript;
   spm::evtmgr::EvtScriptCode* mainLogic = spm::npcdrv::npcEnemyTemplates[285].unkScript7;
   evtpatch::hookEvt(mainLogic, 37, (spm::evtmgr::EvtScriptCode*)changeBowserScript);
+  evtpatch::hookEvt(mainLogic, 172, (spm::evtmgr::EvtScriptCode*)makeBowserJump);
 }
 
 void hookDimentioScripts()
