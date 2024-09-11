@@ -824,6 +824,9 @@ void patchMarioDamage(){
                   damage = 1;
                 } else {return 1;}*/
                 break;
+                case 316:
+                damage = 1;
+                break;
                 case 318:
                 damage = 1;
                 break;
