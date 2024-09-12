@@ -890,6 +890,15 @@ spm::evtmgr::EvtScriptCode* getInstructionEvtArg(spm::evtmgr::EvtScriptCode* scr
   return arg;
 }
 
+spm::npcdrv::NPCDefense * getInstructionEvtDefense(spm::evtmgr::EvtScriptCode* script, s32 line, int instruction)
+{
+  spm::evtmgr::EvtScriptCode* link = evtpatch::getEvtInstruction(script, line);
+  wii::os::OSReport("%x\n", link);
+  spm::npcdrv::NPCDefense * arg = evtpatch::getInstructionArgv(link)[instruction];
+  wii::os::OSReport("%x\n", arg);
+  return arg;
+}
+
 s32 mimiHittable = 1;
 spm::evtmgr::EvtScriptCode* bleckMovementScript;
 
@@ -951,8 +960,29 @@ END_IF()
 END_IF()
 RETURN_FROM_CALL()
 
+spm::evtmgr::EvtScriptCode* mimiUnk2 = spm::npcdrv::npcEnemyTemplates[130].unkScript2;
+spm::evtmgr::EvtScriptCode* mimiRollAttack = getInstructionEvtArg(mimiUnk2, 63, 0);
+spm::npcdrv::NPCDefense * chaosHeartDefense = getInstructionEvtDefense(mimiRollAttack, 20, 3);
+
+EVT_BEGIN(mimiChangeDefense)
+  USER_FUNC(spm::evt_npc::evt_npc_modify_part, PTR("me"), 1, 15, PTR(chaosHeartDefense))
+RETURN_FROM_CALL()
+
 EVT_BEGIN(mimiFlag8_2048)
   USER_FUNC(spm::evt_npc::evt_npc_flag8_onoff, PTR("me"), 1, 2048)
+RETURN_FROM_CALL()
+
+EVT_BEGIN(mimiFlag8_turn_both_on)
+  USER_FUNC(spm::evt_npc::evt_npc_flag8_onoff, PTR("me"), 1, 2048)
+  USER_FUNC(spm::evt_npc::evt_npc_flag8_onoff, PTR("me"), 1, 32768)
+RETURN_FROM_CALL()
+
+EVT_BEGIN(changeMimiAi1)
+    USER_FUNC(spm::evt_npc::evt_npc_set_unitwork, PTR("me"), 0, 4)
+RETURN_FROM_CALL()
+
+EVT_BEGIN(changeMimiAi2)
+    USER_FUNC(spm::evt_npc::evt_npc_set_unitwork, PTR("me"), 0, 1)
 RETURN_FROM_CALL()
 
 EVT_BEGIN(changeMimiSpeed)
@@ -1050,19 +1080,19 @@ void hookBleckScripts()
 
 void hookMimiScripts()
 {
-  spm::evtmgr::EvtScriptCode* mimiUnk2 = spm::npcdrv::npcEnemyTemplates[130].unkScript2;
   spm::evtmgr::EvtScriptCode* mimiOnHitScript = spm::npcdrv::npcEnemyTemplates[130].unkScript3;
   spm::evtmgr::EvtScriptCode* mimiMovement = getInstructionEvtArg(mimiUnk2, 56, 0);
   spm::evtmgr::EvtScriptCode* mimiMainAttack = getInstructionEvtArg(mimiUnk2, 58, 0);
   spm::evtmgr::EvtScriptCode* mimiCeilingMovement = getInstructionEvtArg(mimiUnk2, 60, 0);
   spm::evtmgr::EvtScriptCode* mimiCeilingAttack = getInstructionEvtArg(mimiCeilingMovement, 58, 0);
-  spm::evtmgr::EvtScriptCode* mimiMovementUnknown = getInstructionEvtArg(mimiUnk2, 63, 0);
   spm::evtmgr::EvtScriptCode* mimiMoneyWave = getInstructionEvtArg(mimiUnk2, 65, 0);
   #ifdef SPM_EU0
     spm::evtmgr::EvtScriptCode* mimiTrueHit = getInstructionEvtArg(mimiOnHitScript, 55, 0);
   #else
     spm::evtmgr::EvtScriptCode* mimiTrueHit = getInstructionEvtArg(mimiOnHitScript, 54, 0);
   #endif
+  //evtpatch::hookEvt(mimiUnk2, 54, (spm::evtmgr::EvtScriptCode*)removeMimiBasicWalk);
+  evtpatch::hookEvtReplace(mimiMainAttack, 31, (spm::evtmgr::EvtScriptCode*)turnNull);
   evtpatch::hookEvtReplace(mimiTrueHit, 25, (spm::evtmgr::EvtScriptCode*)turnNull);
   evtpatch::hookEvtReplace(mimiTrueHit, 29, (spm::evtmgr::EvtScriptCode*)turnNull);
   evtpatch::hookEvtReplace(mimiTrueHit, 39, (spm::evtmgr::EvtScriptCode*)turnNull);
@@ -1084,13 +1114,17 @@ void hookMimiScripts()
   //evtpatch::hookEvtReplace(mimiCeilingMovement, 30, (spm::evtmgr::EvtScriptCode*)turnNull);
   evtpatch::hookEvtReplace(mimiCeilingMovement, 60, (spm::evtmgr::EvtScriptCode*)turnNull);
   evtpatch::hookEvtReplace(mimiCeilingAttack, 19, (spm::evtmgr::EvtScriptCode*)removeMimiAnimation);
-  evtpatch::hookEvt(mimiMovementUnknown, 58, (spm::evtmgr::EvtScriptCode*)changeMimiSpeed);
-  evtpatch::hookEvt(mimiMovementUnknown, 60, (spm::evtmgr::EvtScriptCode*)changeMimiSpeed);
-  evtpatch::hookEvt(mimiMovementUnknown, 75, (spm::evtmgr::EvtScriptCode*)changeMimiSpeed);
-  evtpatch::hookEvt(mimiMovementUnknown, 77, (spm::evtmgr::EvtScriptCode*)changeMimiSpeed);
-  evtpatch::hookEvt(mimiMovementUnknown, 92, (spm::evtmgr::EvtScriptCode*)changeMimiSpeed);
-  evtpatch::hookEvt(mimiMovementUnknown, 94, (spm::evtmgr::EvtScriptCode*)changeMimiSpeed);
+  evtpatch::hookEvt(mimiRollAttack, 58, (spm::evtmgr::EvtScriptCode*)changeMimiSpeed);
+  evtpatch::hookEvt(mimiRollAttack, 60, (spm::evtmgr::EvtScriptCode*)changeMimiSpeed);
+  evtpatch::hookEvt(mimiRollAttack, 75, (spm::evtmgr::EvtScriptCode*)changeMimiSpeed);
+  evtpatch::hookEvt(mimiRollAttack, 77, (spm::evtmgr::EvtScriptCode*)changeMimiSpeed);
+  evtpatch::hookEvt(mimiRollAttack, 92, (spm::evtmgr::EvtScriptCode*)changeMimiSpeed);
+  evtpatch::hookEvt(mimiRollAttack, 94, (spm::evtmgr::EvtScriptCode*)changeMimiSpeed);
+  evtpatch::hookEvt(mimiRollAttack, 135, (spm::evtmgr::EvtScriptCode*)changeMimiAi1);
+  //evtpatch::hookEvtReplace(mimiRollAttack, 114, (spm::evtmgr::EvtScriptCode*)turnNull);
   evtpatch::hookEvt(mimiMoneyWave, 19, (spm::evtmgr::EvtScriptCode*)changeMimiSpeed2);
+  evtpatch::hookEvt(mimiMoneyWave, 52, (spm::evtmgr::EvtScriptCode*)changeMimiAi2);
+  evtpatch::hookEvtReplace(mimiMoneyWave, 48, (spm::evtmgr::EvtScriptCode*)turnNull);
 }
 
 void main() {
