@@ -951,6 +951,10 @@ END_IF()
 END_IF()
 RETURN_FROM_CALL()
 
+EVT_BEGIN(mimiFlag8)
+  USER_FUNC(spm::evt_npc::evt_npc_flag8_onoff, PTR("me"), 1, 2048)
+RETURN_FROM_CALL()
+
 EVT_BEGIN(changeMimiSpeed)
   SET(LW(7), 400)
 RETURN_FROM_CALL()
@@ -1064,6 +1068,7 @@ void hookMimiScripts()
   evtpatch::hookEvtReplace(mimiTrueHit, 39, (spm::evtmgr::EvtScriptCode*)turnNull);
   evtpatch::hookEvtReplace(mimiTrueHit, 43, (spm::evtmgr::EvtScriptCode*)turnNull);
   evtpatch::hookEvtReplace(mimiTrueHit, 53, (spm::evtmgr::EvtScriptCode*)turnNull);
+  evtpatch::hookEvt(mimiTrueHit, 116, (spm::evtmgr::EvtScriptCode*)mimiFlag8);
   evtpatch::hookEvt(mimiUnk2, 33, (spm::evtmgr::EvtScriptCode*)changeMimiSpeed);
   evtpatch::hookEvt(mimiUnk2, 54, (spm::evtmgr::EvtScriptCode*)changeBehaviorToAttack);
   evtpatch::hookEvt(mimiMovement, 41, (spm::evtmgr::EvtScriptCode*)changeMimiSpeed);
