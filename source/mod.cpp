@@ -32,6 +32,7 @@
 #include <spm/spmario.h>
 #include <spm/mario_pouch.h>
 #include <spm/mario_motion.h>
+#include <spm/mario_status.h>
 #include <spm/seqdef.h>
 #include <spm/npc_dimeen_l.h>
 #include <spm/item_data.h>
@@ -605,14 +606,20 @@ s32 reduceEnemyRequirements(spm::evtmgr::EvtEntry * evtEntry, bool firstRun) {
   return 2;
 }
 
+s32 removeAbilities(spm::evtmgr::EvtEntry * evtEntry, bool firstRun) {
+  spm::mario_status::marioStatusApplyStatuses(4, 2);
+  return 2;
+}
+
 s32 unPauseGame(spm::evtmgr::EvtEntry * evtEntry, bool firstRun) {
   spm::pausewin::pausewinUnpauseGame();
   spm::spmario::spmarioSystemLevel(0);
-  return firstRun;
+  return 2;
 }
 
 EVT_DECLARE_USER_FUNC(itemCharm, 0)
 EVT_DECLARE_USER_FUNC(reduceEnemyRequirements, 0)
+EVT_DECLARE_USER_FUNC(removeAbilities, 0)
 
 EVT_BEGIN(insertNop)
   SET(LW(0), 0)
@@ -964,6 +971,10 @@ spm::evtmgr::EvtScriptCode* mimiUnk2 = spm::npcdrv::npcEnemyTemplates[130].unkSc
 spm::evtmgr::EvtScriptCode* mimiRollAttack = getInstructionEvtArg(mimiUnk2, 63, 0);
 spm::npcdrv::NPCDefense * chaosHeartDefense = getInstructionEvtDefense(mimiRollAttack, 20, 3);
 
+EVT_BEGIN(removeSkills)
+  USER_FUNC(removeAbilities)
+RETURN_FROM_CALL()
+
 EVT_BEGIN(mimiChangeDefense)
   USER_FUNC(spm::evt_npc::evt_npc_modify_part, PTR("me"), 1, 15, PTR(chaosHeartDefense))
 RETURN_FROM_CALL()
@@ -1121,6 +1132,7 @@ void hookMimiScripts()
   evtpatch::hookEvt(mimiRollAttack, 92, (spm::evtmgr::EvtScriptCode*)changeMimiSpeed);
   evtpatch::hookEvt(mimiRollAttack, 94, (spm::evtmgr::EvtScriptCode*)changeMimiSpeed);
   evtpatch::hookEvt(mimiRollAttack, 135, (spm::evtmgr::EvtScriptCode*)changeMimiAi1);
+  evtpatch::hookEvt(mimiRollAttack, 1, (spm::evtmgr::EvtScriptCode*)removeSkills);
   //evtpatch::hookEvtReplace(mimiRollAttack, 114, (spm::evtmgr::EvtScriptCode*)turnNull);
   evtpatch::hookEvt(mimiMoneyWave, 19, (spm::evtmgr::EvtScriptCode*)changeMimiSpeed2);
   evtpatch::hookEvt(mimiMoneyWave, 52, (spm::evtmgr::EvtScriptCode*)changeMimiAi2);
