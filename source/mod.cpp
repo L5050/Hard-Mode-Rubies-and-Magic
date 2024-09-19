@@ -625,6 +625,10 @@ EVT_BEGIN(insertNop)
   SET(LW(0), 0)
 RETURN_FROM_CALL()
 
+EVT_BEGIN(summonMario)
+  SET(LW(0), 0)
+RETURN_FROM_CALL()
+
 EVT_BEGIN(charmAdd)
   USER_FUNC(itemCharm)
 RETURN_FROM_CALL()
@@ -778,18 +782,14 @@ void patchMarioDamage(){
               //spm::npcdrv::NPCWork * NPCWork = spm::npcdrv::npcGetWorkPtr();
               //wii::os::OSReport("%x\n", damageType);
               /*if (damageType == 1) {
-                spm::npcdrv::MiscSetupDataV6 miscSetupData;
-                s32 zero = 0;
-                u8 one = 0;
+                spm::setup_data::MiscSetupDataV6 miscSetupData;
                 s32 test1 = 0x80a7cfc0;
                 s32 test2 = 0x33c00000;
-                miscSetupData.instanceId = zero;
+                miscSetupData.instanceId = 0;
                 miscSetupData.gravityRotation = 0;
                 for (int i = 0; i < 16; i++) {
-                  miscSetupData.unitWork[i] = zero;
+                  miscSetupData.unitWork[i] = 0;
                 }
-                miscSetupData.unitWork[2] = test1;
-                miscSetupData.unitWork[3] = test2;
                 wii::mtx::Vec3 pos = marioWork->position;
                 spm::npcdrv::NPCEntry * voidEntry = spm::npcdrv::npcEntryFromSetupEnemy(0, &pos, 198, &miscSetupData);
                 voidEntry->partsList = spm::npcdrv::npcTribes[307].partsList;
