@@ -653,6 +653,12 @@ EVT_BEGIN(increaseDynamiteDamage)
   SET(LW(10), 13)
 RETURN_FROM_CALL()
 
+EVT_BEGIN(changeThunderDamage)
+  IF_LARGE(LW(5), 4)
+    SET(LW(5), 4)
+  END_IF()
+RETURN_FROM_CALL()
+
 void patchItems() {
   spm::evtmgr::EvtScriptCode* mightyTonicUseScript = spm::item_event_data::getItemUseEvt(75);
   evtpatch::hookEvtReplace(mightyTonicUseScript, 17, (spm::evtmgr::EvtScriptCode*)charmAdd);
@@ -673,6 +679,8 @@ void patchItems() {
   evtpatch::hookEvtReplace(snowBunny, 16, (spm::evtmgr::EvtScriptCode*)increaseSnowBunnyDamage1);
   evtpatch::hookEvtReplace(snowBunny, 18, (spm::evtmgr::EvtScriptCode*)increaseSnowBunnyDamage2);
   evtpatch::hookEvtReplace(snowBunny, 12, (spm::evtmgr::EvtScriptCode*)increaseSnowBunnyDamage2);
+  spm::evtmgr::EvtScriptCode* thunderRage = spm::item_event_data::getItemUseEvt(67);
+  evtpatch::hookEvt(thunderRage, 46, (spm::evtmgr::EvtScriptCode*)changeThunderDamage);
 }
 
 void patchCooking() {
