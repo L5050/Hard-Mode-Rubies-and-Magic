@@ -656,7 +656,7 @@ RETURN_FROM_CALL()
 void patchItems() {
   spm::evtmgr::EvtScriptCode* mightyTonicUseScript = spm::item_event_data::getItemUseEvt(75);
   evtpatch::hookEvtReplace(mightyTonicUseScript, 17, (spm::evtmgr::EvtScriptCode*)charmAdd);
-  spm::evtmgr::EvtScriptCode* default_item_script = spm::item_event_data::getItemUseEvt(104); //Theres no custom script for the turtley leaf so this just grabs the default item callback
+  spm::evtmgr::EvtScriptCode* default_item_script = spm::item_event_data::default_item_use_evt;
   evtpatch::hookEvt(default_item_script, 67, (spm::evtmgr::EvtScriptCode*)reduceCharmEnemies);
   evtpatch::hookEvt(default_item_script, 45, (spm::evtmgr::EvtScriptCode*)reduceCharmEnemies);
   evtpatch::hookEvt(default_item_script, 58, (spm::evtmgr::EvtScriptCode*)charmAdd);
