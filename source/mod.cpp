@@ -190,6 +190,12 @@ int checkBossHealth() {
         health = NPCWork->entries[i].hp;
       }
     }}
+    if (plotValue == 0x139){
+    for (int i = 0; i < 535; i++) {
+      if (NPCWork->entries[i].tribeId == 316) {
+        health = NPCWork->entries[i].hp;
+      }
+    }}
     if (plotValue == 0x160){
     for (int i = 0; i < 535; i++) {
       if (NPCWork->entries[i].tribeId == 327) {
@@ -202,15 +208,6 @@ int checkBossHealth() {
         health = NPCWork->entries[i].hp;
       }
     }}
-    /*if (plotValue == 0x17D){
-    for (int i = 0; i < 535; i++) {
-      if (NPCWork->entries[i].tribeId == 284 && holee == 0) {
-        //wii::os::OSReport("%d\n", NPCWork->entries[i].m_Anim.m_nPoseId);
-        holee = 1;
-        double rate = 2;
-        spm::animdrv::animPoseSetLocalTimeRate(NPCWork->entries[i].m_Anim.m_nPoseId, rate);
-      }
-    }}*/
     if (plotValue == 0x191){
     for (int i = 0; i < 535; i++) {
       if (NPCWork->entries[i].tribeId == 292) {
@@ -222,15 +219,6 @@ int checkBossHealth() {
       if (NPCWork->entries[i].tribeId == 305) {
         wii::os::OSReport("%d\n", NPCWork->entries[i].m_Anim.m_nPoseId);
         health = NPCWork->entries[i].hp;
-      }
-    }
-    for (int i = 0; i < 535; i++) {
-      if (NPCWork->entries[i].tribeId == 307 && holee == 0) {
-        holee = 1;
-        for (int j = 0; j < 16; j++) {
-        wii::os::OSReport("%x\n", NPCWork->entries[i].unitWork[j]);
-      }
-      //wii::os::OSReport("%x\n", NPCWork->entries[i]); wtf is this anyways
       }
     }}
     if (plotValue == 0x19c){
@@ -840,7 +828,7 @@ void patchMarioDamage(){
                 } else {return 1;}*/
                 break;
                 case 316:
-                damage = 1;
+                damage = 3;
                 break;
                 case 318:
                 damage = 1;
@@ -947,12 +935,16 @@ RETURN_FROM_CALL()
 
 EVT_BEGIN(changeSlowdown)
   USER_FUNC(spm::evt_npc::evt_npc_set_unitwork, "me", 10, 0)
-    USER_FUNC(spm::evt_npc::evt_npc_get_hp, "me", LW(0))
+  USER_FUNC(spm::evt_npc::evt_npc_get_hp, "me", LW(0))
+  IF_LARGE(LW(0), 20)
     ADD(LW(0), 1)
     USER_FUNC(spm::evt_npc::evt_npc_set_hp, "me", LW(0))
     USER_FUNC(spm::evt_npc::evt_npc_set_unitwork, "me", 10, 0)
     SET(LW(0), 16)
     WAIT_MSEC(1000)
+  ELSE()
+    WAIT_MSEC(200)
+  END_IF()
 RETURN_FROM_CALL()
 
 EVT_BEGIN(changeDashAttack)
