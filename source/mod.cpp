@@ -7,6 +7,7 @@
 #include "scripting.cpp"
 
 #include <common.h>
+#include <spm/rel/dan.h>
 #include <spm/evt_cam.h>
 #include <spm/evt_sub.h>
 #include <spm/evt_door.h>
@@ -477,7 +478,7 @@ static void setBossDef() {
       spm::npcdrv::npcTribes[271].partsList[i].defenses[5] = def;
      }
    }
-   spm::npcdrv::npcTribes[282].partsList[0].defenses[0] = def;//mimi defense
+   //spm::npcdrv::npcTribes[282].partsList[0].defenses[0] = def;//mimi defense
    for (int i = 0; i < 15; i++) {//Brobot L-Type defense
       spm::npcdrv::npcTribes[300].partsList[i].defenses[0] = def;
    }
@@ -802,6 +803,9 @@ void patchMarioDamage(){
                 case 273:
                 damage = 2;
                 break;
+                case 282:
+                damage = 1;
+                break;
                 case 286:
                 damage = 1;
                 break;
@@ -1046,6 +1050,102 @@ EVT_BEGIN(changeBowserScript)
   END_IF()
 RETURN_FROM_CALL()
 
+EVT_BEGIN(shadooFight)
+DO(0)
+    USER_FUNC(spm::evt_npc::evt_npc_get_active_count, LW(0))
+    IF_EQUAL(LW(0), 0)
+        DO_BREAK()
+    END_IF()
+    USER_FUNC(spm::evt_npc::evt_npc_get_position, LW(10), LW(11), LW(12), LW(13))
+    WAIT_FRM(1)
+WHILE()
+USER_FUNC(spm::evt_mario::evt_mario_key_off, 0)
+USER_FUNC(spm::evt_npc::evt_npc_tribe_agb_async, 187)
+USER_FUNC(spm::evt_npc::evt_npc_entry_from_template, 0, 187, 0, -100, 0, LW(10), EVT_NULLPTR)
+USER_FUNC(spm::evt_npc::evt_npc_set_anim, LW(10), 0, 1)
+USER_FUNC(spm::evt_npc::func_80107c38, LW(10), 0)
+USER_FUNC(spm::evt_npc::evt_npc_flag8_onoff, LW(10), 0, 8)
+USER_FUNC(spm::evt_npc::evt_npc_flag8_onoff, LW(10), 1, 65536)
+USER_FUNC(spm::evt_npc::evt_npc_flip_to, LW(10), 1)
+USER_FUNC(spm::evt_npc::evt_npc_finish_flip_instant, LW(10))
+IF_SMALL(LW(11), -480)
+    SET(LW(11), -480)
+END_IF()
+IF_LARGE(LW(11), 480)
+    SET(LW(11), 480)
+END_IF()
+IF_SMALL(LW(12), 0)
+    SET(LW(12), 0)
+END_IF()
+IF_SMALL(LW(13), -140)
+    SET(LW(13), -140)
+END_IF()
+IF_LARGE(LW(13), 140)
+    SET(LW(13), 140)
+END_IF()
+USER_FUNC(spm::evt_npc::evt_npc_set_position, LW(10), LW(11), LW(12), LW(13))
+USER_FUNC(spm::evt_npc::func_800ff8f8, LW(10), LW(11), LW(12), LW(13))
+USER_FUNC(spm::evt_snd::evt_snd_sfxon_npc, PTR("SFX_EVT_100_PC_LINE_DRAW1"), LW(10))
+USER_FUNC(spm::evt_snd::evt_snd_sfxon_npc, PTR("SFX_EVT_100_PC_LINE_TURN1"), LW(10))
+USER_FUNC(spm::evt_npc::evt_npc_flip, LW(10))
+USER_FUNC(spm::evt_npc::evt_npc_wait_flip_finished, LW(10))
+USER_FUNC(spm::evt_npc::evt_npc_flag8_onoff, LW(10), 1, 8)
+USER_FUNC(spm::evt_npc::func_80102bf8, LW(10))
+USER_FUNC(spm::evt_mario::evt_mario_key_on)
+DO(0)
+    USER_FUNC(spm::evt_npc::evt_npc_get_active_count, LW(0))
+    IF_EQUAL(LW(0), 0)
+        DO_BREAK()
+    END_IF()
+    USER_FUNC(spm::evt_npc::evt_npc_get_position, LW(10), LW(11), LW(12), LW(13))
+    WAIT_FRM(1)
+WHILE()
+USER_FUNC(spm::evt_mario::evt_mario_key_off, 0)
+USER_FUNC(spm::evt_npc::evt_npc_tribe_agb_async, 200)
+USER_FUNC(spm::evt_npc::evt_npc_entry_from_template, 0, 200, 0, -100, 0, LW(10), EVT_NULLPTR)
+USER_FUNC(spm::evt_npc::evt_npc_set_anim, LW(10), 0, 1)
+USER_FUNC(spm::evt_npc::func_80107c38, LW(10), 0)
+USER_FUNC(spm::evt_npc::evt_npc_flag8_onoff, LW(10), 0, 8)
+USER_FUNC(spm::evt_npc::evt_npc_flag8_onoff, LW(10), 1, 65536)
+USER_FUNC(spm::evt_npc::evt_npc_flip_to, LW(10), 1)
+USER_FUNC(spm::evt_npc::evt_npc_finish_flip_instant, LW(10))
+IF_SMALL(LW(11), -480)
+    SET(LW(11), -480)
+END_IF()
+IF_LARGE(LW(11), 480)
+    SET(LW(11), 480)
+END_IF()
+IF_SMALL(LW(12), 0)
+    SET(LW(12), 0)
+END_IF()
+IF_SMALL(LW(13), -140)
+    SET(LW(13), -140)
+END_IF()
+IF_LARGE(LW(13), 140)
+    SET(LW(13), 140)
+END_IF()
+USER_FUNC(spm::evt_npc::evt_npc_set_position, LW(10), LW(11), LW(12), LW(13))
+USER_FUNC(spm::evt_npc::func_800ff8f8, LW(10), LW(11), LW(12), LW(13))
+USER_FUNC(spm::evt_snd::evt_snd_sfxon_npc, PTR("SFX_EVT_100_PC_LINE_DRAW1"), LW(10))
+USER_FUNC(spm::evt_snd::evt_snd_sfxon_npc, PTR("SFX_EVT_100_PC_LINE_TURN1"), LW(10))
+USER_FUNC(spm::evt_npc::evt_npc_flip, LW(10))
+USER_FUNC(spm::evt_npc::evt_npc_wait_flip_finished, LW(10))
+USER_FUNC(spm::evt_npc::evt_npc_flag8_onoff, LW(10), 1, 8)
+USER_FUNC(spm::evt_npc::func_80102bf8, LW(10))
+RETURN_FROM_CALL()
+
+EVT_BEGIN(oChunksFix)
+IF_LARGE(GSW(0), 35)
+  SET(LW(0), 0)
+END_IF()
+RETURN_FROM_CALL()
+
+void hookShadooScripts()
+{
+  evtpatch::hookEvtReplaceBlock(spm::dan::dan_shadoo_fight_evt, 1, (spm::evtmgr::EvtScriptCode*)shadooFight, 40);
+  evtpatch::hookEvt(spm::npcdrv::npcEnemyTemplates[281].unkScript6, 27, (spm::evtmgr::EvtScriptCode*)oChunksFix);
+}
+
 void hookBowserScripts()
 {
   //spm::evtmgr::EvtScriptCode* bowserOnSpawn = spm::npcdrv::npcEnemyTemplates[285].onSpawnScript;
@@ -1162,6 +1262,7 @@ void main() {
   patchAddXp();
   patchVariables();
   evtpatch::evtmgrExtensionInit(); // Initialize EVT scripting extension
+  //hookShadooScripts();
   hookBowserScripts();
   hookDimentioScripts();
   hookSuperDimentioScripts();
