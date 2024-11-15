@@ -90,7 +90,10 @@
 // more
 
 // effdrv.c
+800616e4:effEntryType
 80061d78:func_80061d78
+800a2fe4:eff_item_thunder
+800a315c:func_800a315c
 
 // fadedrv.c
 800677f8:fadeIsFinish
@@ -129,6 +132,7 @@
 80025164:getItemUseEvt
 803fbc10:itemEventDataTable
 803ff190:default_item_use_evt
+805adf00:item_event_data_wp
 // more
 
 // mapdrv.c
@@ -173,6 +177,8 @@
 // more
 
 // evt_item.c
+800277fc:evt_item_spawn_thunder
+80025700:evt_item_event_free_work
 800ecc84:evt_item_entry
 800ecda0:evt_item_get_position
 800ece50:evt_item_set_position
@@ -204,12 +210,14 @@
 
 // evtmgr_cmd.c
 // text
+800da0d4:evt_lbl
 800dd0b8:evt_inline_evt
 800ddd5c:evtmgrCmd
 800dd500:evt_debug_put_msg
 800dd534:evt_debug_put_reg
 800de594:evtGetValue
 800de9b8:evtSetValue
+800dedb8:evtGetFloat
 800df1fc:evtSetFloat
 // bss
 8050ce30:evt_debug_put_reg_str
@@ -240,6 +248,7 @@
 // evt_eff.c
 800e57bc:evt_eff
 800e6148:evt_eff_softdelete
+800E6250:evt_eff_exclamation_question
 // more
 
 // evt_env.c
@@ -250,6 +259,7 @@
 800e7050:evt_fade_entry
 800e7100:evt_fade_end_wait
 800e71dc:evt_fade_callfade
+800E720C:evt_set_transition
 // more
 
 // evt_case.c
@@ -303,8 +313,9 @@
 800f0074:evt_mario_face_coords
 800f046c:evt_mario_pos_change
 800f1954:evt_mario_set_pose
+800F19C0:evt_mario_wait_anim
 800f2450:evt_mario_fairy_reset
-800f25b0:evt_set_gravity
+800f25b0:evt_mario_set_gravity
 800f2f68:evt_mario_set_anim_change_handler
 // more
 
@@ -337,24 +348,28 @@
 80102c7c:evt_npc_get_hp
 80102d3c:evt_npc_get_max_hp
 80102dfc:evt_npc_set_hp
+801037a4:evt_npc_flag46C_onoff
 800fe124:evt_npc_get_position
 800fe21c:evt_npc_set_position
 800fe668:evt_npc_rotate
 800fe92c:func_800fe92c
 800ffbd8:evt_npc_walk_to
-80102bf8:func_80102bf8
+801006fc:evt_npc_arc_to
 801004c0:evt_npc_jump_to
 80102574:evt_npc_glide_to
+80102bf8:func_80102bf8
+80102e68:evt_npc_delete
 80102EB8:evt_npc_stats_set_up
 80102f5c:evt_npc_entry
 80103054:func_80103054
 80103108:evt_npc_set_anim
-80103410:func_80103410
+8010330c:evt_npc_get_cur_anim
+80103410:evt_npc_wait_anim_end
 8010368c:evt_npc_flag8_onoff
 801039b8:evt_npc_animflag_onoff
 80103dbc:evt_npc_get_unitwork
 80103ea8:evt_npc_set_unitwork
-80104694:func_80104694
+80104694:evt_npc_set_move_mode
 80104c94:evt_npc_set_property
 80104fac:evt_npc_modify_part
 80105550:evt_npc_wait_flip_finished
@@ -362,6 +377,7 @@
 80105708:evt_npc_flip_to
 80105768:evt_npc_flip
 801059d0:func_801059d0
+801059D0:evt_npc_set_axis_movement_unit
 80106724:evt_npc_entry_from_template
 80107540:evt_npc_id_to_name
 80107bcc:evt_npc_set_camid
@@ -370,9 +386,16 @@
 80107d20:func_80107d20
 80108194:func_80108194
 801086fc:evt_npc_get_active_count
+80108d98:evt_npc_set_part_attack_power
+801093E0:evt_npc_wait_axis_movement_unit_end
+8010a418:evt_npc_wait_for
 8010a910:evt_npc_teleport_effect
 8010be80:evt_npc_tribe_agb_async
 // more
+
+// not sure where you want this
+8040E598:evt_cutscene_pure_heart
+804E5C20:evt_memcard_save
 
 // evt_paper.c
 8010c600:evt_paper_entry
@@ -400,6 +423,7 @@
 // evt_seq.c
 8010d028:evt_seq_set_seq
 8010d0a0:evt_seq_wait
+8010D0F0:evt_seq_mapchange
 // more
 
 // evt_shop.c
@@ -410,6 +434,7 @@
 // mario.c
 80121f48:marioGetPtr
 80122b68:marioCtrlOffChk
+80122bbc:marioCtrlOn
 80122b7c:marioKeyOffChk
 80122bf4:marioKeyOff
 80122c2c:marioKeyOn
@@ -465,6 +490,7 @@
 // more
 
 // seq_mapchange.c
+8017a33c:seq_mapChangeInit
 8017a464:seq_mapChangeMain
 8017af98:_unload
 // more
@@ -640,11 +666,15 @@
 801adef0:npcDispMain
 801b6f2c:npcNameToPtr
 801b7064:npcDelete
+801be198:npcEntryFromTemplate
+801bf7a0:npcEntryFromSetupEnemy
 801bfc48:npcSearchAnimDefs
 801c9adc:npcGetWorkPtr
 801e3a1c:npcDropItem
+801ca1a4:func_801ca1a4
 // more
 // data
+805ae188:npcdrv_wp
 8043bf30:npcTribes
 80449888:npcEnemyTemplates
 // more

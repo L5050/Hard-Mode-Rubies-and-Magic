@@ -292,7 +292,7 @@
 801029AC:evt_npc_entry
 80102AA4:func_80103054
 80102B58:evt_npc_set_anim
-801040E4:func_80104694
+801040E4:evt_npc_set_move_mode
 801030DC:evt_npc_flag8_onoff
 80103408:evt_npc_animflag_onoff
 801046E4:evt_npc_set_property
@@ -591,7 +591,7 @@
 800D2D00:evt_snd_sfxon_npc_delay
 800E6778:evt_env_static_blur_on
 1,1,166e4:func_80c5c36c
-80102E60:func_80103410
+80102E60:evt_npc_wait_anim_end
 800E629C:evt_eff_softdelete
 800F2F78:evt_mario_set_anim_change_handler
 800FF65C:evt_npc_walk_to
@@ -669,6 +669,16 @@
 80105158:evt_npc_flip_to
 801051B8:evt_npc_flip
 
+// new to SPMMulti
+80179B10:seq_mapChangeInit
+801087E8:evt_npc_set_part_attack_power
+801C9324:func_801ca1a4
+80100180:evt_npc_arc_to
+801028B8:evt_npc_delete
+80109E68:evt_npc_wait_for
+80102D5C:evt_npc_get_cur_anim
+800DEF0C:evtGetFloat
+
 // 2023-09-02
 802960A0:IOS_OpenAsync
 802962D8:IOS_CloseAsync
@@ -687,3 +697,13 @@
 80275610:OSYieldThread
 80275CB4:OSResumeThread
 802588e8:memcmp
+
+// new to april fools 2024
+800E63A4:evt_eff_exclamation_question
+800F1AD8:evt_mario_wait_anim
+80105420:evt_npc_set_axis_movement_unit
+80108E30:evt_npc_wait_axis_movement_unit_end
+803D0130:evt_cutscene_pure_heart
+8010CADC:evt_seq_mapchange
+800E7360:evt_set_transition
+800DA228:evt_lbl
