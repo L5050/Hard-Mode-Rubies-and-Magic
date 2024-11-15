@@ -1,11 +1,14 @@
 #pragma once
 #include <spm/evt_npc.h>
+#include <spm/npcdrv.h>
 
 namespace mod::cutscene_helpers
 {
 
+#define NPC_PROPERTY_ANIM_DEF 14
+
 #define SET_CHAR_ANIMS(instanceName, tribeAnimDef) \
-    USER_FUNC(spm::evt_npc::evt_npc_set_property, PTR(instanceName), spm::npcdrv::NPCProperty::ANIMS, PTR(tribeAnimDef))
+    USER_FUNC(spm::evt_npc::evt_npc_set_property, PTR(instanceName), 0xe, PTR(tribeAnimDef))
 
 #define SPAWN_CHARACTER(instanceName, modelName, initialAnimations) \
     USER_FUNC(spm::evt_npc::evt_npc_entry, PTR(instanceName), PTR(modelName), 0) \
@@ -13,7 +16,7 @@ namespace mod::cutscene_helpers
 
 #define NPC_SET_ANIM_WAIT(npcName, animId) \
     USER_FUNC(spm::evt_npc::evt_npc_set_anim, PTR(npcName), animId, 1) \
-    USER_FUNC(spm::evt_npc::evt_wait_anim_end, PTR(npcName), 1)
+    USER_FUNC(spm::evt_npc::evt_npc_wait_anim_end, PTR(npcName), 1)
 
 #define NPC_SET_ANIMDEF_AND_ANIM(npcName, animDef, animId) \
     USER_FUNC(spm::evt_npc::evt_npc_set_property, PTR(npcName), NPC_PROPERTY_ANIM_DEF, PTR(animDef)) \
@@ -21,7 +24,7 @@ namespace mod::cutscene_helpers
 
 #define NPC_SET_ANIMDEF_AND_ANIM_WAIT(npcName, animDef, animId) \
     NPC_SET_ANIMDEF_AND_ANIM(npcName, animDef, animId) \
-    USER_FUNC(spm::evt_npc::evt_wait_anim_end, PTR(npcName), 1)
+    USER_FUNC(spm::evt_npc::evt_npc_wait_anim_end, PTR(npcName), 1)
 
 #define NPC_SET_ANIMDEF_AND_ANIM_LOOP(npcName, animDef, animInId, animLoopId) \
     NPC_SET_ANIMDEF_AND_ANIM_WAIT(npcName, animDef, animInId) \

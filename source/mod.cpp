@@ -1050,7 +1050,7 @@ EVT_BEGIN(changeBowserScript)
   END_IF()
 RETURN_FROM_CALL()
 
-EVT_BEGIN(shadooFight)
+/*EVT_BEGIN(shadooFight)
 DO(0)
     USER_FUNC(spm::evt_npc::evt_npc_get_active_count, LW(0))
     IF_EQUAL(LW(0), 0)
@@ -1132,7 +1132,7 @@ USER_FUNC(spm::evt_npc::evt_npc_flip, LW(10))
 USER_FUNC(spm::evt_npc::evt_npc_wait_flip_finished, LW(10))
 USER_FUNC(spm::evt_npc::evt_npc_flag8_onoff, LW(10), 1, 8)
 USER_FUNC(spm::evt_npc::func_80102bf8, LW(10))
-RETURN_FROM_CALL()
+RETURN_FROM_CALL()*/
 
 EVT_BEGIN(oChunksFix)
 IF_LARGE(GSW(0), 35)
@@ -1142,8 +1142,8 @@ RETURN_FROM_CALL()
 
 void hookShadooScripts()
 {
-  evtpatch::hookEvtReplaceBlock(spm::dan::dan_shadoo_fight_evt, 1, (spm::evtmgr::EvtScriptCode*)shadooFight, 40);
-  evtpatch::hookEvt(spm::npcdrv::npcEnemyTemplates[281].unkScript6, 27, (spm::evtmgr::EvtScriptCode*)oChunksFix);
+  //evtpatch::hookEvtReplaceBlock(spm::dan::dan_shadoo_fight_evt, 1, (spm::evtmgr::EvtScriptCode*)shadooFight, 40);
+  evtpatch::hookEvt(spm::npcdrv::npcEnemyTemplates[281].unkScript6, 27, (spm::evtmgr::EvtScriptCode*)oChunksFix); //Fix for if O'Chunks is killed outside of gsw 35, not needed right now
 }
 
 void hookBowserScripts()
