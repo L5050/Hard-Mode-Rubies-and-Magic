@@ -7,13 +7,9 @@ ifeq ($(strip $(DEVKITPPC)),)
 $(error "Please set DEVKITPPC in your environment. export DEVKITPPC=<path to>devkitPPC")
 endif
 
-ifeq ($(strip $(TTYDTOOLS)),)
-$(error "Please set TTYDTOOLS in your environment. export TTYDTOOLS=<path to>ttyd-tools")
-endif
-
 include $(DEVKITPPC)/wii_rules
 
-export ELF2REL	:=	$(TTYDTOOLS)/bin/elf2rel
+export ELF2REL	:=	pyelf2rel
 
 ifeq ($(VERSION),)
 all: us0 us1 us2 jp0 jp1 eu0 eu1 kr0
@@ -200,7 +196,7 @@ $(OFILES_SOURCES) : $(HFILES)
 # REL linking
 %.rel: %.elf
 	@echo output ... $(notdir $@)
-	@$(ELF2REL) $< -s $(MAPFILE)
+	$(ELF2REL) $< $(MAPFILE)
 
 #---------------------------------------------------------------------------------
 # This rule links in binary data with the .jpg extension
