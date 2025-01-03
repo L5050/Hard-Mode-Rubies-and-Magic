@@ -1037,6 +1037,10 @@ EVT_BEGIN(increaseLuigiShits)
   SET(LW(0), 60000)
 RETURN_FROM_CALL()
 
+EVT_BEGIN(makePhase1LastLessTime)
+  SET(LW(1), 250)
+RETURN_FROM_CALL()
+
 EVT_BEGIN(makeBowserJump)
   ADD(LW(1), 100)
   USER_FUNC(spm::evt_mario::evt_mario_get_pos, LW(0), LW(4), LW(5))
@@ -1173,8 +1177,9 @@ void hookSuperDimentioScripts()
 {
   spm::evtmgr::EvtScriptCode* mainLogic = spm::npcdrv::npcEnemyTemplates[255].unkScript7;
   evtpatch::hookEvtReplace(mainLogic, 10, (spm::evtmgr::EvtScriptCode*)increaseLuigiShits);
-  spm::evtmgr::EvtScriptCode* throwAttack = getInstructionEvtArg(mainLogic, 65, 0);
-  evtpatch::hookEvt(mainLogic, 21, (spm::evtmgr::EvtScriptCode*)throwAttack);
+  evtpatch::hookEvtReplace(mainLogic, 34, (spm::evtmgr::EvtScriptCode*)makePhase1LastLessTime);
+  //spm::evtmgr::EvtScriptCode* throwAttack = getInstructionEvtArg(mainLogic, 65, 0);
+  //evtpatch::hookEvt(mainLogic, 21, (spm::evtmgr::EvtScriptCode*)throwAttack);
 }
 
 void hookBleckScripts()
