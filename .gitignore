@@ -9,6 +9,8 @@
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
+lib
+lib64
 
 # Build results
 [Dd]ebug/
@@ -271,3 +273,4 @@ build.*
 *.bat
 pcrel*.bin
 private/
+pyvenv.cfg
