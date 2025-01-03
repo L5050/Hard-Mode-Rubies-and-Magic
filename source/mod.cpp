@@ -36,6 +36,7 @@
 #include <spm/mario_status.h>
 #include <spm/seqdef.h>
 #include <spm/npc_dimeen_l.h>
+#include <spm/item_data_ids.h>
 #include <spm/item_data.h>
 //#include <spm/item_event_data.h>
 #include <spm/evt_shop.h>
@@ -524,7 +525,6 @@ s32 scriptTakeDamage(spm::evtmgr::EvtEntry * evtEntry, bool firstRun) {
 
 int (*marioCalcDamageToEnemy)(s32 damageType, s32 tribeId);
 void (*seq_gameMain)(spm::seqdrv::SeqWork *param_1);
-void (*pouchAddXp)(int increase);
 /*spm::evtmgr::EvtEntry * newEntry(const spm::evtmgr::EvtScriptCode * script, u8 priority, u8 flags, s32 type)
         {
           spm::mario_pouch::MarioPouchWork * pouch = spm::mario_pouch::pouchGetPtr();
@@ -565,14 +565,22 @@ seq_gameMain = patch::hookFunction(spm::seq_game::seq_gameMain,
 );
 }
 
-void patchAddXp() {
-  pouchAddXp = patch::hookFunction(spm::mario_pouch::pouchAddXp,
-    [](int increase)
-            {
-              increase = increase / 2;
-                pouchAddXp(increase);
-            }
-        );
+void reduceXpGained() {
+  for (int i = 0; i < 535; i++) {
+    if (spm::npcdrv::npcTribes[i].killXp >= 2) {
+     int newXp = spm::npcdrv::npcTribes[i].killXp / 2;
+     spm::npcdrv::npcTribes[i].killXp = newXp;
+    }
+    if (spm::npcdrv::npcTribes[i].stylishXp >= 2) {
+       int newXp = spm::npcdrv::npcTribes[i].stylishXp / 2;
+       spm::npcdrv::npcTribes[i].stylishXp = newXp;
+    }
+  }
+  for (int i = 0; i < ITEM_ID_MAX; i++) {
+    if (spm::item_data::itemDataTable[i].xpGain > = 2) {
+      spm::item_data::itemDataTable[i].xpGain = spm::item_data::itemDataTable[i].xpGain / 2;
+    }
+  }
 }
 
 s32 itemCharm(spm::evtmgr::EvtEntry * evtEntry, bool firstRun) {
@@ -1264,7 +1272,7 @@ void main() {
   patchMarioDamage();
   patchItems();
   patchCooking();
-  patchAddXp();
+  reduceXpGained();
   patchVariables();
   evtpatch::evtmgrExtensionInit(); // Initialize EVT scripting extension
   //hookShadooScripts();
