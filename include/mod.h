@@ -2,7 +2,7 @@
 #include "evt_cmd.h"
 namespace mod {
 
-#define MOD_VERSION "SPM April Fools 2024"
+#define MOD_VERSION "Rubies and Magic"
 
 extern bool gIsDolphin;
 

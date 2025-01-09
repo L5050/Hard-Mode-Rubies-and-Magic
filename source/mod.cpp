@@ -5,6 +5,8 @@
 #include "evtpatch.h"
 #include "exception.h"
 #include "scripting.cpp"
+#include "exception.h"
+#include "romfontexpand.h"
 
 #include <common.h>
 #include <spm/rel/dan.h>
@@ -19,6 +21,7 @@
 #include <spm/evt_mobj.h>
 #include <spm/evt_msg.h>
 #include <spm/evt_npc.h>
+#include <spm/evt_env.h>
 #include <spm/evt_seq.h>
 #include <spm/evt_snd.h>
 #include <spm/pausewin.h>
@@ -26,6 +29,7 @@
 #include <spm/wpadmgr.h>
 #include <spm/fontmgr.h>
 #include <spm/seqdrv.h>
+#include <spm/map_data.h>
 #include <spm/evtmgr_cmd.h>
 #include <spm/seq_game.h>
 #include <spm/npcdrv.h>
@@ -43,6 +47,7 @@
 #include <wii/os/OSError.h>
 #include <wii/gx.h>
 #include <wii/mtx.h>
+#include <wii/ipc.h>
 #include <string>
 #include <cstdio>
 #include <limits>
@@ -113,7 +118,7 @@ int checkBossHealth() {
   int health = 0;
   s32 plotValue = globals->gsw0;
   if (globals->gsw[24] == 0) globals->gsw[24] = 1;
-  //wii::os::OSReport("%x\n", spm::evtmgr_cmd::evtGetValue(eventEntry, LW(10)));
+  //wii::os::OSReport("%p\n", spm::evtmgr_cmd::evtGetValue(eventEntry, LW(10)));
     if (plotValue == 0x21){
     for (int i = 0; i < 535; i++) {
       if (NPCWork->entries[i].tribeId == 270) {
@@ -411,7 +416,8 @@ static void setBossHP() {
   spm::npcdrv::npcTribes[286].maxHp = 12; //Dimentio 1
   spm::npcdrv::npcTribes[318].maxHp = 25; //Francis
   spm::npcdrv::npcTribes[295].maxHp = 16; //Mr. L
-  spm::npcdrv::npcTribes[271].maxHp = 20; //O'Chunks 2
+  spm::npcdrv::npcTribes[271].maxHp = 1; //O'Chunks 2
+  spm::npcdrv::npcTribes[289].maxHp = 1; //Dimentio 2
   spm::npcdrv::npcTribes[272].maxHp = 20; //O'Cabbage
   //spm::npcdrv::npcTribes[319].maxHp = 20; //King Croacus
   spm::npcdrv::npcTribes[282].maxHp = 15; //Mimi
@@ -419,7 +425,7 @@ static void setBossHP() {
   spm::npcdrv::npcTribes[316].maxHp = 12; //Bowser 2
   //spm::npcdrv::npcTribes[327].maxHp = 30; //Bonechill
   spm::npcdrv::npcTribes[273].maxHp = 100; //O'Chunks 3
-  spm::npcdrv::npcTribes[292].maxHp = 5; //Dimentio 2
+  spm::npcdrv::npcTribes[292].maxHp = 5; //Dimentio 3
   spm::npcdrv::npcTribes[305].maxHp = 25; //Count Bleck
   spm::npcdrv::npcTribes[309].maxHp = 170; //Super Dimentio
   spm::npcdrv::npcTribes[330].maxHp = 12; //Dark Mario
@@ -577,7 +583,7 @@ void reduceXpGained() {
     }
   }
   for (int i = 0; i < ITEM_ID_MAX; i++) {
-    if (spm::item_data::itemDataTable[i].xpGain > = 2) {
+    if (spm::item_data::itemDataTable[i].xpGain >= 2) {
       spm::item_data::itemDataTable[i].xpGain = spm::item_data::itemDataTable[i].xpGain / 2;
     }
   }
@@ -785,7 +791,7 @@ void patchMarioDamage(){
     [](s32 damageType, s32 tribeId)
             {
               //spm::npcdrv::NPCWork * NPCWork = spm::npcdrv::npcGetWorkPtr();
-              //wii::os::OSReport("%x\n", damageType);
+              //wii::os::OSReport("%p\n", damageType);
               /*if (damageType == 1) {
                 spm::setup_data::MiscSetupDataV6 miscSetupData;
                 s32 test1 = 0x80a7cfc0;
@@ -815,6 +821,9 @@ void patchMarioDamage(){
                 damage = 1;
                 break;
                 case 286:
+                damage = 1;
+                break;
+                case 289:
                 damage = 1;
                 break;
                 case 292:
@@ -910,48 +919,49 @@ void patchVariables() {
 spm::evtmgr::EvtScriptCode* getInstructionEvtArg(spm::evtmgr::EvtScriptCode* script, s32 line, int instruction)
 {
   spm::evtmgr::EvtScriptCode* link = evtpatch::getEvtInstruction(script, line);
-  wii::os::OSReport("%x\n", link);
+  wii::os::OSReport("%p\n", link);
   spm::evtmgr::EvtScriptCode* arg = evtpatch::getInstructionArgv(link)[instruction];
-  wii::os::OSReport("%x\n", arg);
+  wii::os::OSReport("%p\n", arg);
   return arg;
 }
 
 spm::npcdrv::NPCDefense * getInstructionEvtDefense(spm::evtmgr::EvtScriptCode* script, s32 line, int instruction)
 {
   spm::evtmgr::EvtScriptCode* link = evtpatch::getEvtInstruction(script, line);
-  wii::os::OSReport("%x\n", link);
+  wii::os::OSReport("%p\n", link);
   spm::npcdrv::NPCDefense * arg = evtpatch::getInstructionArgv(link)[instruction];
-  wii::os::OSReport("%x\n", arg);
+  wii::os::OSReport("%p\n", arg);
   return arg;
 }
 
 s32 mimiHittable = 1;
 spm::evtmgr::EvtScriptCode* bleckMovementScript;
+spm::evtmgr::EvtScriptCode* standard_death_script;
 
 EVT_BEGIN(changeFlyingSpeedBleck)
-  USER_FUNC(spm::evt_npc::evt_npc_glide_to, "me", LW(5), LW(6), LW(7), 0, FLOAT(180.0), 0, 11, 0, 0)
+  USER_FUNC(spm::evt_npc::evt_npc_glide_to, PTR("me"), LW(5), LW(6), LW(7), 0, FLOAT(180.0), 0, 11, 0, 0)
 RETURN_FROM_CALL()
 
 EVT_BEGIN(changeFlyingSpeed)
-  USER_FUNC(spm::evt_npc::evt_npc_glide_to, "me", LW(5), LW(6), LW(7), 0, FLOAT(800.0), 0, 5, 0, 0)
+  USER_FUNC(spm::evt_npc::evt_npc_glide_to, PTR("me"), LW(5), LW(6), LW(7), 0, FLOAT(800.0), 0, 5, 0, 0)
 RETURN_FROM_CALL()
 
 EVT_BEGIN(changeBoxAttack)
-  USER_FUNC(spm::evt_npc::evt_npc_get_axis_movement_unit, "me", LW(1))
+  USER_FUNC(spm::evt_npc::evt_npc_get_axis_movement_unit, PTR("me"), LW(1))
   ADD(LW(1), 1)
 RETURN_FROM_CALL()
 
 EVT_BEGIN(turnNull)
-  SET(LW(0), LW(0))
+  NEXT()
 RETURN_FROM_CALL()
 
 EVT_BEGIN(changeSlowdown)
-  USER_FUNC(spm::evt_npc::evt_npc_set_unitwork, "me", 10, 0)
-  USER_FUNC(spm::evt_npc::evt_npc_get_hp, "me", LW(0))
+  USER_FUNC(spm::evt_npc::evt_npc_set_unitwork, PTR("me"), 10, 0)
+  USER_FUNC(spm::evt_npc::evt_npc_get_hp, PTR("me"), LW(0))
   IF_LARGE(LW(0), 20)
     ADD(LW(0), 1)
-    USER_FUNC(spm::evt_npc::evt_npc_set_hp, "me", LW(0))
-    USER_FUNC(spm::evt_npc::evt_npc_set_unitwork, "me", 10, 0)
+    USER_FUNC(spm::evt_npc::evt_npc_set_hp, PTR("me"), LW(0))
+    USER_FUNC(spm::evt_npc::evt_npc_set_unitwork, PTR("me"), 10, 0)
     SET(LW(0), 16)
     WAIT_MSEC(1000)
   ELSE()
@@ -960,11 +970,11 @@ EVT_BEGIN(changeSlowdown)
 RETURN_FROM_CALL()
 
 EVT_BEGIN(changeDashAttack)
-  USER_FUNC(spm::evt_npc::evt_npc_glide_to, "me", LW(5), LW(6), LW(7), 0, FLOAT(800.0), 0, 2, 0, 0)
+  USER_FUNC(spm::evt_npc::evt_npc_glide_to, PTR("me"), LW(5), LW(6), LW(7), 0, FLOAT(800.0), 0, 2, 0, 0)
 RETURN_FROM_CALL()
 
 EVT_BEGIN(changeVoids)
-  USER_FUNC(spm::evt_npc::evt_npc_flag8_onoff, "me", 0, 2048)
+  USER_FUNC(spm::evt_npc::evt_npc_flag8_onoff, PTR("me"), 0, 2048)
 RETURN_FROM_CALL()
 
 EVT_BEGIN(changeVoids2)
@@ -1052,7 +1062,7 @@ RETURN_FROM_CALL()
 EVT_BEGIN(makeBowserJump)
   ADD(LW(1), 100)
   USER_FUNC(spm::evt_mario::evt_mario_get_pos, LW(0), LW(4), LW(5))
-  USER_FUNC(spm::evt_npc::evt_npc_jump_to, "me", LW(0), LW(1), LW(2), FLOAT(0.0), 180)
+  USER_FUNC(spm::evt_npc::evt_npc_jump_to, PTR("me"), LW(0), LW(1), LW(2), FLOAT(0.0), 180)
 RETURN_FROM_CALL()
 
 EVT_BEGIN(changeBowserScript)
@@ -1152,6 +1162,127 @@ IF_LARGE(GSW(0), 35)
 END_IF()
 RETURN_FROM_CALL()
 
+const char * dimentio_stg5_1 = "<p>\n"
+"Ah ha ha ha, I'm surprised you\n"
+"defeated him so easily...\n"
+"<k>\n";
+
+const char * dimentio_stg5_2 = "<p>\n"
+"But I'm not going to leave\n"
+"quite yet...\n"
+"<k>\n";
+
+const char * dimentio_stg5_3 = "<p>\n"
+"<wave>En garde!</wave>\n"
+"<k>\n";
+
+const char * dimentio_stg5_4 = "<p>\n"
+"<wave>Look how much effort it takes\n"
+"for you to land 10 blows on me.</wave>\n"
+"<k>\n";
+
+const char * dimentio_stg5_5 = "<p>\n"
+"Alas, I would let you\n"
+"enterain me further\n"
+"<k>\n"
+"<p>\n"
+"But I have an appointment\n"
+"with an old acquaintance\n"
+"I must keep.\n"
+"<k>\n";
+
+const char * dimentio_stg5_6 = "<p>\n"
+"I have one last surprise\n"
+"for you.\n"
+"<k>\n"
+"<p>\n"
+"Ah ha ha ha.\n"
+"<wave>Ciao!</wave>\n"
+"<k>\n";
+
+spm::npcdrv::NPCTribeAnimDef animsDimen[] = {
+  {0, "S_2"}, // Flying (ID 0 is idle animation)
+  {1, "S_1"}, // Standing
+  {20, "W_3"}, // Finger click
+  {21, "A_1a"}, // Magic start
+  {22, "W_2c"}, // Land
+  {23, "A_1c"}, // Magic cast
+  {24, "A_2a"}, // Raise hands
+  {25, "A_2b"}, // Wave hands
+  {26, "A_2c"}, // Raise hands cast
+  {27, "W_2a"}, // Fly
+  {3, "T_2"}, // Talking (ID 3 is the ID to use when talking)
+  {-1, nullptr}
+};
+
+EVT_BEGIN(spawnDimiGn2)
+  USER_FUNC(spm::evt_npc::evt_npc_entry, PTR("dimi"), PTR("e_dmen"), 0)
+  USER_FUNC(spm::evt_npc::evt_npc_set_property, PTR("dimi"), 0xe, PTR(animsDimen))
+  USER_FUNC(spm::evt_npc::evt_npc_set_anim, PTR("dimi"), 0, 1)
+  USER_FUNC(spm::evt_npc::evt_npc_set_position, PTR("dimi"), 450, 25, 0)
+RETURN_FROM_CALL()
+
+EVT_BEGIN(dimentioMusic1)
+  USER_FUNC(spm::evt_snd::evt_snd_bgmon_f_d, 0, PTR("BGM_BTL_DIMEN1"), 2000)
+RETURN_FROM_CALL()
+
+EVT_BEGIN(dimiDeath)
+  SET(LW(10), PTR("me"))
+  USER_FUNC(spm::evt_mario::evt_mario_key_off, 0)
+  USER_FUNC(spm::evt_mario::evt_mario_fairy_reset)
+  USER_FUNC(spm::evt_npc::evt_npc_set_move_mode, LW(10), 0)
+  USER_FUNC(spm::evt_npc::evt_npc_get_position, LW(10), LW(0), LW(1), LW(2))
+  USER_FUNC(spm::evt_npc::evt_npc_flag8_onoff, LW(10), 1, 1073741824)
+  USER_FUNC(spm::evt_npc::evt_npc_get_position, LW(10), LW(0), LW(1), LW(2))
+  USER_FUNC(spm::evt_eff::evt_eff, 0, PTR("dmen_warp"), 0, LW(0), LW(1), LW(2), 0, 0, 0, 0, 0, 0, 0, 0)
+  USER_FUNC(spm::evt_snd::evt_snd_sfxon_3d, PTR("SFX_BS_DMN_GOOUT1"), LW(0), LW(1), LW(2))
+  USER_FUNC(spm::evt_npc::evt_npc_set_position, LW(10), 0, -1000, 0)
+  WAIT_MSEC(700)
+  USER_FUNC(spm::evt_mario::evt_mario_get_pos, LW(0), LW(1), LW(2))
+  ADD(LW(0), 100)
+  ADD(LW(1), 75)
+  USER_FUNC(spm::evt_npc::evt_npc_set_position, PTR("dimi"), LW(0), LW(1), LW(2))
+  USER_FUNC(spm::evt_npc::evt_npc_teleport_effect, 1, PTR("dimi"))
+  WAIT_MSEC(300)
+  USER_FUNC(spm::evt_msg::evt_msg_print, 1, PTR(dimentio_stg5_4), 0, PTR("dimi"))
+  USER_FUNC(spm::evt_cam::evt_cam3d_evt_zoom_in, 1, LW(0), EVT_NULLPTR, 484, LW(0), EVT_NULLPTR, -16, 1000, 11)
+  USER_FUNC(spm::evt_msg::evt_msg_print, 1, PTR(dimentio_stg5_5), 0, PTR("dimi"))
+  USER_FUNC(spm::evt_snd::evt_snd_bgmoff_f_d, 0, 2000)
+  USER_FUNC(spm::evt_msg::evt_msg_print, 1, PTR(dimentio_stg5_6), 0, PTR("dimi"))
+  USER_FUNC(spm::evt_npc::evt_npc_set_anim, PTR("dimi"), 24, 1)
+  USER_FUNC(spm::evt_npc::evt_npc_wait_anim_end, PTR("dimi"), 1)
+  USER_FUNC(spm::evt_snd::evt_snd_sfxon_npc, PTR("SFX_BS_DMN_MAGIC_HAND_UP1"), PTR("dimi"))
+  USER_FUNC(spm::evt_npc::evt_npc_set_anim, PTR("dimi"), 25, 1)
+  WAIT_MSEC(1500)
+  USER_FUNC(spm::evt_npc::evt_npc_set_anim, PTR("dimi"), 26, 1)
+  USER_FUNC(spm::evt_npc::evt_npc_wait_anim_end, PTR("dimi"), 1)
+  USER_FUNC(spm::evt_fade::evt_set_transition, 26, 25)
+  INLINE_EVT()
+    USER_FUNC(spm::evt_env::evt_env_blur_on, 0, 1000)
+  END_INLINE()
+  USER_FUNC(spm::evt_seq::evt_seq_mapchange, PTR("gn2_04"), 0)
+EVT_END()
+
+EVT_BEGIN(dimentioDialogue1)
+  USER_FUNC(spm::evt_msg::evt_msg_print, 1, PTR(dimentio_stg5_1), 0, PTR("dimi"))
+  USER_FUNC(spm::evt_cam::evt_cam3d_evt_zoom_in, -1, 380, 60, 384, 380, 60, -16, 800, 11)
+  WAIT_MSEC(800)
+  USER_FUNC(spm::evt_msg::evt_msg_print, 1, PTR(dimentio_stg5_2), 0, PTR("dimi"))
+  USER_FUNC(spm::evt_msg::evt_msg_print, 1, PTR(dimentio_stg5_3), 0, PTR("dimi"))
+  USER_FUNC(spm::evt_npc::evt_npc_tribe_agb_async, 225)
+  USER_FUNC(spm::evt_npc::evt_npc_get_position, PTR("dimi"), LW(0), LW(1), LW(2))
+  USER_FUNC(spm::evt_npc::evt_npc_entry_from_template, 0, 225, LW(0), LW(1), LW(2), LW(10), EVT_NULLPTR)
+  USER_FUNC(spm::evt_npc::evt_npc_set_unitwork, LW(10), 8, PTR(dimiDeath))
+  USER_FUNC(spm::evt_npc::evt_npc_set_position, PTR("dimi"), 0, -1000, 0)
+  USER_FUNC(spm::evt_door::evt_door_enable_disable_map_door_desc, 0, PTR("doa1_l"))
+RETURN_FROM_CALL()
+
+EVT_BEGIN(checkForDimentio) //If stone tablet is active during dimentio fight it causes a crash, so check for dimentio via GSW and disable it if its too low
+  IF_SMALL(GSW(0), 191)
+    RETURN()
+  END_IF()
+RETURN_FROM_CALL()
+
 void hookShadooScripts()
 {
   //evtpatch::hookEvtReplaceBlock(spm::dan::dan_shadoo_fight_evt, 1, (spm::evtmgr::EvtScriptCode*)shadooFight, 40);
@@ -1169,7 +1300,7 @@ void hookBowserScripts()
 void hookDimentioScripts()
 {
   spm::evtmgr::EvtScriptCode* dimentioOnSpawn = spm::npcdrv::npcEnemyTemplates[142].onSpawnScript;
-  wii::os::OSReport("%x\n", dimentioOnSpawn);
+  wii::os::OSReport("%p\n", dimentioOnSpawn);
   spm::evtmgr::EvtScriptCode* part1 = getInstructionEvtArg(dimentioOnSpawn, 4, 3);
   spm::evtmgr::EvtScriptCode* part2 = getInstructionEvtArg(part1, 7, 0);
   spm::evtmgr::EvtScriptCode* dimentioBattleLink = getInstructionEvtArg(part2, 3, 0);
@@ -1188,6 +1319,20 @@ void hookSuperDimentioScripts()
   evtpatch::hookEvtReplace(mainLogic, 34, (spm::evtmgr::EvtScriptCode*)makePhase1LastLessTime);
   //spm::evtmgr::EvtScriptCode* throwAttack = getInstructionEvtArg(mainLogic, 65, 0);
   //evtpatch::hookEvt(mainLogic, 21, (spm::evtmgr::EvtScriptCode*)throwAttack);
+}
+
+void hookChunkScripts()
+{
+  spm::map_data::MapData * gn2_03_md = spm::map_data::mapDataPtr("gn2_03");
+  spm::evtmgr::EvtScriptCode* gn2_03_init = gn2_03_md->initScript;
+  spm::evtmgr::EvtScriptCode* oChunksDeath = getInstructionEvtArg(gn2_03_init, 52, 0);
+  spm::evtmgr::EvtScriptCode* stoneTabletScript = getInstructionEvtArg(gn2_03_init, 56, 0);
+  evtpatch::hookEvtReplace(oChunksDeath, 99, (spm::evtmgr::EvtScriptCode*)turnNull);
+  evtpatch::hookEvtReplace(oChunksDeath, 102, (spm::evtmgr::EvtScriptCode*)spawnDimiGn2);
+  evtpatch::hookEvt(oChunksDeath, 143, (spm::evtmgr::EvtScriptCode*)dimentioDialogue1);
+  evtpatch::hookEvt(stoneTabletScript, 1, (spm::evtmgr::EvtScriptCode*)checkForDimentio);
+  evtpatch::hookEvtReplace(oChunksDeath, 146, (spm::evtmgr::EvtScriptCode*)dimentioMusic1);
+  evtpatch::hookEvtReplaceBlock(oChunksDeath, 147, (spm::evtmgr::EvtScriptCode*)turnNull, 150);
 }
 
 void hookBleckScripts()
@@ -1263,9 +1408,16 @@ void hookMimiScripts()
   evtpatch::hookEvtReplace(mimiMoneyWave, 48, (spm::evtmgr::EvtScriptCode*)turnNull);
 }
 
+void getStandardDeathScript()
+{
+  spm::evtmgr::EvtScriptCode* dimentioOnDeath = spm::npcdrv::npcEnemyTemplates[225].unkScript6;
+  standard_death_script = getInstructionEvtArg(dimentioOnDeath, 20, 0);
+}
+
 void main() {
   wii::os::OSReport("SPM Rel Loader: the mod has ran!\n");
   titleScreenCustomTextPatch();
+  getStandardDeathScript();
   setBossHP();
   setBossXp();
   setBossDef();
@@ -1281,6 +1433,7 @@ void main() {
   hookSuperDimentioScripts();
   hookBleckScripts();
   hookMimiScripts();
+  hookChunkScripts();
 }
 
 }
