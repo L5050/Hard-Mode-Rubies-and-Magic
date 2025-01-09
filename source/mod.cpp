@@ -416,8 +416,8 @@ static void setBossHP() {
   spm::npcdrv::npcTribes[286].maxHp = 12; //Dimentio 1
   spm::npcdrv::npcTribes[318].maxHp = 25; //Francis
   spm::npcdrv::npcTribes[295].maxHp = 16; //Mr. L
-  spm::npcdrv::npcTribes[271].maxHp = 1; //O'Chunks 2
-  spm::npcdrv::npcTribes[289].maxHp = 1; //Dimentio 2
+  spm::npcdrv::npcTribes[271].maxHp = 20; //O'Chunks 2
+  spm::npcdrv::npcTribes[289].maxHp = 10; //Dimentio 2
   spm::npcdrv::npcTribes[272].maxHp = 20; //O'Cabbage
   //spm::npcdrv::npcTribes[319].maxHp = 20; //King Croacus
   spm::npcdrv::npcTribes[282].maxHp = 15; //Mimi
