@@ -169,6 +169,9 @@ int checkBossHealth() {
       if (NPCWork->entries[i].tribeId == 271) {
         health = NPCWork->entries[i].hp;
       }
+      if (NPCWork->entries[i].tribeId == 289) {
+        health = NPCWork->entries[i].hp;
+      }
     }}
     if (plotValue == 0xd4){
         bossSequence = 1;
@@ -1182,8 +1185,8 @@ const char * dimentio_stg5_4 = "<p>\n"
 "<k>\n";
 
 const char * dimentio_stg5_5 = "<p>\n"
-"Alas, I would let you\n"
-"enterain me further\n"
+"Alas, I would let you entertain\n"
+"me further...\n"
 "<k>\n"
 "<p>\n"
 "But I have an appointment\n"
@@ -1260,6 +1263,7 @@ EVT_BEGIN(dimiDeath)
   INLINE_EVT()
     USER_FUNC(spm::evt_env::evt_env_blur_on, 0, 1000)
   END_INLINE()
+  SET(GSW(0), 191)
   USER_FUNC(spm::evt_seq::evt_seq_mapchange, PTR("gn2_04"), 0)
 EVT_END()
 
@@ -1275,6 +1279,7 @@ EVT_BEGIN(dimentioDialogue1)
   USER_FUNC(spm::evt_npc::evt_npc_set_unitwork, LW(10), 8, PTR(dimiDeath))
   USER_FUNC(spm::evt_npc::evt_npc_set_position, PTR("dimi"), 0, -1000, 0)
   USER_FUNC(spm::evt_door::evt_door_enable_disable_map_door_desc, 0, PTR("doa1_l"))
+  SET(GSW(0), 190)
 RETURN_FROM_CALL()
 
 EVT_BEGIN(checkForDimentio) //If stone tablet is active during dimentio fight it causes a crash, so check for dimentio via GSW and disable it if its too low
