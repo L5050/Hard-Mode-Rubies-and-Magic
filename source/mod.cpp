@@ -66,7 +66,6 @@ int holee = 0;
 static spm::seqdef::SeqFunc *seq_titleMainReal;
 static spm::seqdef::SeqFunc *seq_gameMainReal;
 
-
 static void seq_titleMainOverride(spm::seqdrv::SeqWork *wp)
 {
   wii::gx::GXColor green = {
@@ -1419,6 +1418,86 @@ void getStandardDeathScript()
   standard_death_script = getInstructionEvtArg(dimentioOnDeath, 20, 0);
 }
 
+s32 dimen_determine_move_pos_new(spm::evtmgr::EvtEntry *entry, bool isFirstCall)
+{
+    spm::mario::MarioWork *marioWork = spm::mario::marioGetPtr();
+    spm::npcdrv::NPCEntry *npc = entry->ownerNPC;
+    double destYPos = 0;
+    f32 marioZ = ((marioWork->position).z);
+    f32 destXPos = 0;
+    u32 dimenMoveRand = 0;
+    f32 negXBoundary = spm::evtmgr_cmd::evtGetFloat(entry, entry->lw[11]);
+    f32 posXBoundary = spm::evtmgr_cmd::evtGetFloat(entry, entry->lw[12]);
+    s32 i = 0;
+    do
+    {
+        while (true)
+        {
+            do
+            {
+                i = i + 1;
+                dimenMoveRand = spm::system::irand(400);
+                destXPos = ((marioWork->position).x + (f32)dimenMoveRand - 200);
+                if (i > 50)
+                {
+                    destXPos = npc->position.x;
+                    goto outOfBounds;
+                }
+            } while ((destXPos <= negXBoundary) || (posXBoundary <= destXPos));
+        outOfBounds:
+            u32 yMoveBehavior = spm::system::irand(100);
+            if (yMoveBehavior < 67)
+            {
+                dimenMoveRand = spm::system::irand(4);
+                destYPos = (10.0 * (f32)dimenMoveRand + 20.0);
+            }
+            else
+            {
+                dimenMoveRand = spm::system::irand(3);
+                destYPos = (32.0 * (f32)dimenMoveRand + 40.0);
+            }
+            if (npc->flippedTo3d != 0)
+                break;
+            if ((100.0 < __builtin_abs((destXPos - (marioWork->position).x))) || (80.0 < destYPos))
+                goto setFloats;
+        }
+        destYPos = spm::system::distABf(destXPos, marioZ, ((marioWork->position).x), marioZ);
+    } while ((destYPos <= 120.0) && (destYPos <= 80.0));
+setFloats:
+    spm::evtmgr::EvtVar *args = (spm::evtmgr::EvtVar *)entry->pCurData;
+    spm::evtmgr_cmd::evtSetFloat(entry, args[0], destXPos);
+    spm::evtmgr_cmd::evtSetFloat(entry, args[1], destYPos);
+    spm::evtmgr_cmd::evtSetFloat(entry, args[2], marioZ);
+    return 2;
+}
+
+    EVT_BEGIN(patch_dimen)
+    SWITCH(GSW(0))
+    CASE_SMALL(117) // 3-3 Dimentio, vanilla coordinates
+    SET(LW(11), -350)
+    SET(LW(12), 350)
+    SWITCH_BREAK()
+    CASE_SMALL(195) // 5-2 Dimentio, for use with Hard Mode R&M's gn2_03 Dimentio fight
+    SET(LW(11), -958)
+    SET(LW(12), 955)
+    SWITCH_BREAK()
+    CASE_SMALL(404) // 8-3 Dimentio, widened coordinates to fit the larger room
+    SET(LW(11), -465)
+    SET(LW(12), 465)
+    SWITCH_BREAK()
+    END_SWITCH()
+    RETURN_FROM_CALL()
+
+    static void dimenPatch()
+        { //thanks to eemuh
+            patch::hookFunction(spm::evt_npc::evt_npc_dimen_determine_move_pos, dimen_determine_move_pos_new);
+
+            evtpatch::hookEvt(spm::npc_dimeen_l::dimen_unk_fight_script_1, 1, patch_dimen);
+            evtpatch::hookEvt(spm::npc_dimeen_l::dimen_unk_fight_script_2, 1, patch_dimen);
+            evtpatch::hookEvt(spm::npc_dimeen_l::dimen_unk_fight_script_3, 1, patch_dimen);
+        }
+
+
 void main() {
   wii::os::OSReport("SPM Rel Loader: the mod has ran!\n");
   titleScreenCustomTextPatch();
@@ -1432,13 +1511,14 @@ void main() {
   reduceXpGained();
   patchVariables();
   evtpatch::evtmgrExtensionInit(); // Initialize EVT scripting extension
-  //hookShadooScripts();
   hookBowserScripts();
   hookDimentioScripts();
   hookSuperDimentioScripts();
   hookBleckScripts();
   hookMimiScripts();
   hookChunkScripts();
+  dimenPatch();
+  //patchDimentio();
 }
 
 }
