@@ -206,6 +206,17 @@ void insertTrampolineCall(EvtScriptCode* ptr, EvtScriptCode* script) {
     ptr[TRAMPOLINE_CALL_EVT_OFFSET] = reinterpret_cast<s32>(script);
 }
 
+/// @brief Patches a script with another script of an equal or smaller size
+/// @param ptr The place to write the instruction at
+/// @param scriptCode The EvtScriptCode to replace the destination with
+/// @param dst The size of dst
+static void insertScriptCode(EvtScriptCode* ptr, EvtScriptCode* scriptCode, s32 size) {
+    //wii::os::OSReport("%x %x %x %x\n", (unsigned char)ptr[0], (unsigned char)ptr[1], (unsigned char)ptr[2], (unsigned char)ptr[3]);
+    //wii::os::OSReport("%x %x %x %x\n", (unsigned char)scriptCode[0], (unsigned char)scriptCode[1], (unsigned char)scriptCode[2], (unsigned char)scriptCode[3]);
+    msl::string::memcpy(ptr, scriptCode, size);
+    //wii::os::OSReport("%x %x %x %x\n", (unsigned char)ptr[0], (unsigned char)ptr[1], (unsigned char)ptr[2], (unsigned char)ptr[3]);
+}
+
 /// @brief Hooks into an evt script, automatically preserving original instructions
 /// @param script The evt script that will be hooked into
 /// @param line The line number to hook at, 1-indexed
@@ -213,6 +224,7 @@ void insertTrampolineCall(EvtScriptCode* ptr, EvtScriptCode* script) {
 void hookEvt(EvtScriptCode* script, s32 line, EvtScriptCode* dst) {
     hookEvtByOffset(script, getLineOffset(script, line), dst);
 }
+
 /// @brief Hooks into an evt script, automatically preserving original instructions
 /// @param script The evt script that will be hooked into
 /// @param offset The offset to hook at, in EvtScriptCodes, from the start of the script
@@ -230,6 +242,35 @@ void hookEvtByOffset(EvtScriptCode* script, s32 offset, EvtScriptCode* dst) {
     msl::string::memcpy(dynamicEvtForwarder + TRAMPOLINE_CALL_LENGTH + lenOriginalInstructions, trampolineReturnFromCall, TRAMPOLINE_RETURN_FROM_CALL_SIZE); // add return
     msl::string::memset(src, 0, sizeOriginalInstructions); // pad anything left with 0s
     insertTrampolineCall(src, dynamicEvtForwarder);
+}
+
+/// @brief Replaces an EvtScriptCode
+/// @param script The EvtScriptCode that will be replaced
+/// @param line The line number to hook at, 1-indexed
+/// @param dst The EvtScriptCode that will be executed
+/// @param dst The size of dst
+/// @example evtpatch::replaceEvt(jaydesRequest, 1, testCall, sizeof(testCall));
+void replaceEvt(EvtScriptCode* script, s32 line, EvtScriptCode* dst, s32 size) {
+    replaceEvtByOffset(script, getLineOffset(script, line), dst, size);
+}
+/// @brief Replaces an EvtScriptCode
+/// @param script The EvtScriptCode that will be replaced
+/// @param offset The offset to hook at, in EvtScriptCodes, from the start of the script
+/// @param dst The EvtScriptCode that will be executed
+/// @param dst The size of dst
+void replaceEvtByOffset(EvtScriptCode* script, s32 offset, EvtScriptCode* dst, s32 size) {
+    EvtScriptCode* src = script + offset;
+    assert(isStartOfInstruction(src), "Cannot hook on non-instruction, what are you doing :sob:");
+    u8 argNum1 = (script[1] << 8) | script[0];
+    u8 argNum2 = (dst[1] << 8) | dst[0];
+    assert(argNum1 > argNum2, "Replacement instruction too large");
+
+    u32 instructionLength = sizeof(*dst) / sizeof(EvtScriptCode);
+    u32 lenOriginalInstructions = getInstructionBlockLength(src, instructionLength);
+    u32 sizeOriginalInstructions = lenOriginalInstructions * sizeof(EvtScriptCode);
+
+    msl::string::memset(src, 0, sizeOriginalInstructions); // pad anything left with 0s
+    insertScriptCode(src, dst, size);
 }
 
 /// @brief Adds a hook to another evt script, without preserving original instructions

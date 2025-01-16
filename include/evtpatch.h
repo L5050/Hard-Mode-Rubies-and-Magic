@@ -27,6 +27,8 @@ void insertTrampolineCall(spm::evtmgr::EvtScriptCode* ptr, spm::evtmgr::EvtScrip
 
 void hookEvt(spm::evtmgr::EvtScriptCode* script, s32 line, spm::evtmgr::EvtScriptCode* dst);
 void hookEvtByOffset(spm::evtmgr::EvtScriptCode* script, s32 offset, spm::evtmgr::EvtScriptCode* dst);
+void replaceEvt(spm::evtmgr::EvtScriptCode* script, s32 line, spm::evtmgr::EvtScriptCode* dst, s32 size);
+void replaceEvtByOffset(spm::evtmgr::EvtScriptCode* script, s32 offset, spm::evtmgr::EvtScriptCode* dst, s32 size);
 void hookEvtReplace(spm::evtmgr::EvtScriptCode* script, s32 line, spm::evtmgr::EvtScriptCode* dst);
 void hookEvtReplaceByOffset(spm::evtmgr::EvtScriptCode* script, s32 offset, spm::evtmgr::EvtScriptCode* dst);
 void hookEvtReplaceBlock(spm::evtmgr::EvtScriptCode* script, s32 lineStart, spm::evtmgr::EvtScriptCode* dst, s32 lineEnd);

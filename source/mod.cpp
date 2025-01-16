@@ -7,6 +7,7 @@
 #include "scripting.cpp"
 #include "exception.h"
 #include "romfontexpand.h"
+#include "patchNinja.h"
 
 #include <common.h>
 #include <spm/rel/dan.h>
@@ -892,7 +893,24 @@ void patchMarioDamage(){
             }
         );
 }
+/* ninjoe testing
+s32 (*evt_npc_set_unitwork)(spm::evtmgr::EvtEntry* evtEntry, bool firstRun);
+void patchUnitwork() {
 
+  evt_npc_set_unitwork = patch::hookFunction(spm::evt_npc::evt_npc_set_unitwork,
+    [](spm::evtmgr::EvtEntry* evtEntry, bool firstRun)
+            {
+              spm::evtmgr::EvtVar *args = (spm::evtmgr::EvtVar *)evtEntry->pCurData;
+              if (args[1] == 11 && args[2] == 0) {
+                wii::os::OSReport("%p\n", evtEntry->scriptStart);
+              }
+
+              return evt_npc_set_unitwork(evtEntry, firstRun);
+            }
+        );
+
+}
+*/
 void patchBarry()
 {
   //check if the version is eu0, if not then change the assembly to point to the correct float which is 0x8 off between versions
@@ -1518,7 +1536,7 @@ void main() {
   hookMimiScripts();
   hookChunkScripts();
   dimenPatch();
-  //patchDimentio();
+  ninjaPatch();
 }
 
 }

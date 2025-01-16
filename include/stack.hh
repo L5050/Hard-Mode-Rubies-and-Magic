@@ -1,6 +1,8 @@
 #pragma once
 
 #include <common.h>
+#include <spm/system.h>
+#include <wii/os.h>
 
 namespace mod {
 
