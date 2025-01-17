@@ -969,7 +969,7 @@ spm::evtmgr::EvtScriptCode* bleckMovementScript;
 spm::evtmgr::EvtScriptCode* standard_death_script;
 
 EVT_BEGIN(rollForNinjoe)
-  USER_FUNC(spm::evt_sub::evt_sub_random, 75, LW(0))
+  USER_FUNC(spm::evt_sub::evt_sub_random, 90, LW(0))
   IF_EQUAL(LW(0), 1)
     USER_FUNC(spm::evt_sub::evt_sub_random, 9, LW(0))
     IF_LARGE(LW(0), 6)
