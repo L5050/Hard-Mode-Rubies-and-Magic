@@ -40,6 +40,7 @@
 #include <spm/mario_motion.h>
 #include <spm/mario_status.h>
 #include <spm/seqdef.h>
+#include <spm/npc_ninja.h>
 #include <spm/npc_dimeen_l.h>
 #include <spm/item_data_ids.h>
 #include <spm/item_data.h>
@@ -623,7 +624,16 @@ s32 unPauseGame(spm::evtmgr::EvtEntry * evtEntry, bool firstRun) {
   return 2;
 }
 
+s32 giveHampterCheese(spm::evtmgr::EvtEntry * evtEntry, bool firstRun) {
+spm::mapdrv::mapGrpFlagOn(0, "A2_pas_01", 1);
+spm::mapdrv::mapGrpFlagOn(0, "A3_pas_01", 1);
+spm::mapdrv::mapGrpFlagOn(0, "A2_doa_05", 1);
+spm::mapdrv::mapGrpFlagOn(0, "A3_doa_05", 1);
+return 2;
+}
+
 EVT_DECLARE_USER_FUNC(itemCharm, 0)
+EVT_DECLARE_USER_FUNC(giveHampterCheese, 0)
 EVT_DECLARE_USER_FUNC(reduceEnemyRequirements, 0)
 EVT_DECLARE_USER_FUNC(removeAbilities, 0)
 
@@ -794,7 +804,7 @@ void patchMarioDamage(){
     [](s32 damageType, s32 tribeId)
             {
               //spm::npcdrv::NPCWork * NPCWork = spm::npcdrv::npcGetWorkPtr();
-              //wii::os::OSReport("%p\n", damageType);
+              //wii::os::OSReport("%d\n", damageType);
               /*if (damageType == 1) {
                 spm::setup_data::MiscSetupDataV6 miscSetupData;
                 s32 test1 = 0x80a7cfc0;
@@ -957,6 +967,50 @@ spm::npcdrv::NPCDefense * getInstructionEvtDefense(spm::evtmgr::EvtScriptCode* s
 s32 mimiHittable = 1;
 spm::evtmgr::EvtScriptCode* bleckMovementScript;
 spm::evtmgr::EvtScriptCode* standard_death_script;
+
+EVT_BEGIN(rollForNinjoe)
+  USER_FUNC(spm::evt_sub::evt_sub_random, 75, LW(0))
+  IF_EQUAL(LW(0), 1)
+    USER_FUNC(spm::evt_sub::evt_sub_random, 9, LW(0))
+    IF_LARGE(LW(0), 6)
+      USER_FUNC(spm::evt_npc::evt_npc_tribe_agb_async, 178)
+      USER_FUNC(spm::evt_npc::evt_npc_entry_from_template, 0, 178, 0, -100, 0, LW(10), EVT_NULLPTR)
+      USER_FUNC(spm::evt_npc::evt_npc_flip_to, LW(10), 1)
+      USER_FUNC(spm::evt_npc::evt_npc_finish_flip_instant, LW(10))
+      USER_FUNC(spm::evt_npc::evt_npc_flip, LW(10))
+      USER_FUNC(spm::evt_mario::evt_mario_get_pos, LW(1), LW(2), LW(3))
+      ADD(LW(2), 100)
+      USER_FUNC(spm::evt_npc::evt_npc_set_position, LW(10), LW(1), LW(2), LW(3))
+      USER_FUNC(spm::evt_snd::evt_snd_sfxon_npc, PTR("SFX_E_NINJA_APPEAR1"), LW(10))
+    ELSE()
+      IF_LARGE(LW(0), 3)
+        USER_FUNC(spm::evt_npc::evt_npc_tribe_agb_async, 259)
+        USER_FUNC(spm::evt_npc::evt_npc_entry_from_template, 0, 259, 0, -100, 0, LW(10), EVT_NULLPTR)
+        USER_FUNC(spm::evt_npc::evt_npc_flip_to, LW(10), 1)
+        USER_FUNC(spm::evt_npc::evt_npc_finish_flip_instant, LW(10))
+        USER_FUNC(spm::evt_npc::evt_npc_flip, LW(10))
+        USER_FUNC(spm::evt_mario::evt_mario_get_pos, LW(1), LW(2), LW(3))
+        ADD(LW(2), 100)
+        USER_FUNC(spm::evt_npc::evt_npc_set_position, LW(10), LW(1), LW(2), LW(3))
+        USER_FUNC(spm::evt_snd::evt_snd_sfxon_npc, PTR("SFX_E_NINJA_APPEAR1"), LW(10))
+      ELSE()
+        USER_FUNC(spm::evt_npc::evt_npc_tribe_agb_async, 262)
+        USER_FUNC(spm::evt_npc::evt_npc_entry_from_template, 0, 262, 0, -100, 0, LW(10), EVT_NULLPTR)
+        USER_FUNC(spm::evt_npc::evt_npc_flip_to, LW(10), 1)
+        USER_FUNC(spm::evt_npc::evt_npc_finish_flip_instant, LW(10))
+        USER_FUNC(spm::evt_npc::evt_npc_flip, LW(10))
+        USER_FUNC(spm::evt_mario::evt_mario_get_pos, LW(1), LW(2), LW(3))
+        ADD(LW(2), 100)
+        USER_FUNC(spm::evt_npc::evt_npc_set_position, LW(10), LW(1), LW(2), LW(3))
+        USER_FUNC(spm::evt_snd::evt_snd_sfxon_npc, PTR("SFX_E_NINJA_APPEAR1"), LW(10))
+      END_IF()
+    END_IF()
+  END_IF()
+RETURN_FROM_CALL()
+
+void patchStandardDeathScript(){
+  evtpatch::hookEvt(standard_death_script, 13, (spm::evtmgr::EvtScriptCode*)rollForNinjoe);
+}
 
 EVT_BEGIN(changeFlyingSpeedBleck)
   USER_FUNC(spm::evt_npc::evt_npc_glide_to, PTR("me"), LW(5), LW(6), LW(7), 0, FLOAT(180.0), 0, 11, 0, 0)
@@ -1343,6 +1397,16 @@ void hookSuperDimentioScripts()
   //evtpatch::hookEvt(mainLogic, 21, (spm::evtmgr::EvtScriptCode*)throwAttack);
 }
 
+EVT_BEGIN(activateHampter)
+  USER_FUNC(giveHampterCheese)
+RETURN_FROM_CALL()
+
+void hampter()
+{
+    spm::map_data::MapData * mi3_01_md = spm::map_data::mapDataPtr("mi3_01");
+    evtpatch::hookEvtReplaceBlock(mi3_01_md->initScript, 47, (spm::evtmgr::EvtScriptCode*)activateHampter, 57);
+}
+
 void hookChunkScripts()
 {
   spm::map_data::MapData * gn2_03_md = spm::map_data::mapDataPtr("gn2_03");
@@ -1537,6 +1601,8 @@ void main() {
   hookChunkScripts();
   dimenPatch();
   ninjaPatch();
+  patchStandardDeathScript();
+  hampter();
 }
 
 }
