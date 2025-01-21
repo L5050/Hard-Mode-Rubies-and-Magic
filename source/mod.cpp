@@ -718,7 +718,7 @@ void patchMarioDamage(){
               int health = checkBossHealth();
               s32 plotValue = globals->gsw0;
               if (plotValue == 0x67 && bossSequence > 0){
-                if (health <= 3 && bossSequence == 1){
+                if (health > 0 && health <= 3 && bossSequence == 1){
                   //Bowser
               bossSequence -= 1;
               damage = 0;
@@ -1602,7 +1602,7 @@ void main() {
   dimenPatch();
   ninjaPatch();
   patchStandardDeathScript();
-  hampter();
+  //hampter(); will always live in our memories
 }
 
 }
