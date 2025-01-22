@@ -479,6 +479,9 @@ static void setBossDef() {
     if (spm::npcdrv::npcTribes[286].partsList[i].id == 1) {
      spm::npcdrv::npcTribes[286].partsList[i].defenses[0] = fireDef;
     }
+    if (spm::npcdrv::npcTribes[289].partsList[i].id == 1) {
+     spm::npcdrv::npcTribes[289].partsList[i].defenses[0] = fireDef;
+    }
   }
    for (int i = 0; i < 7; i++) {//Brobot defense
       spm::npcdrv::npcTribes[296].partsList[i].defenses[0] = def;
