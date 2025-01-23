@@ -22,6 +22,7 @@
 #include <spm/evt_mobj.h>
 #include <spm/evt_msg.h>
 #include <spm/evt_npc.h>
+#include <spm/memory.h>
 #include <spm/evt_env.h>
 #include <spm/evt_seq.h>
 #include <spm/evt_snd.h>
@@ -46,6 +47,7 @@
 #include <spm/item_data.h>
 //#include <spm/item_event_data.h>
 #include <spm/evt_shop.h>
+#include <msl/string.h>
 #include <wii/os/OSError.h>
 #include <wii/gx.h>
 #include <wii/mtx.h>
@@ -1570,6 +1572,26 @@ setFloats:
             evtpatch::hookEvt(spm::npc_dimeen_l::dimen_unk_fight_script_3, 1, patch_dimen);
         }
 
+        void patchTpl(u32 destId, u32 srcId, wii::tpl::TPLHeader *destTpl, wii::tpl::TPLHeader *srcTpl, const char *filePath = nullptr, bool free = false) {
+
+          // Loads the tpl if not already loaded by the stated filePath
+          if (srcTpl == nullptr){
+          spm::filemgr::FileEntry * srcFile = spm::filemgr::fileAllocf(4, filePath);
+          s32 tplSize = srcFile->length;
+          srcTpl = (wii::tpl::TPLHeader *)spm::memory::__memAlloc(spm::memory::Heap::HEAP_MAIN, tplSize);
+          msl::string::memcpy(srcTpl, srcFile->sp->data, tplSize);
+          spm::filemgr::fileFree(srcFile);
+          }
+
+          // Patches the destination tpl with the one given by the mod.rel
+          destTpl->imageTable[destId] = srcTpl->imageTable[srcId];
+
+          // Free the memory of the tpl loaded from mod.rel to prevent a leak
+          if (free == true){
+          spm::memory::__memFree(spm::memory::Heap::HEAP_MAIN, srcTpl);
+          }
+          return;
+        }
 
 void main() {
   wii::os::OSReport("SPM Rel Loader: the mod has ran!\n");
@@ -1593,7 +1615,9 @@ void main() {
   dimenPatch();
   ninjaPatch();
   patchStandardDeathScript();
-  //hampter(); will always live in our memories
+  wii::tpl::TPLHeader *myTplHeader = nullptr;
+  patchTpl(116, 0, (wii::tpl::TPLHeader *)spm::icondrv::icondrv_wp->wiconTpl->sp->data, myTplHeader, "./a/n_mg_flower-", true);
+  hampter(); //will always live in our memories
 }
 
 }
