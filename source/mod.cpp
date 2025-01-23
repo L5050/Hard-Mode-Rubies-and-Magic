@@ -119,7 +119,6 @@ int checkBossHealth() {
   int health = 0;
   s32 plotValue = globals->gsw0;
   if (globals->gsw[24] == 0) globals->gsw[24] = 1;
-  //wii::os::OSReport("%p\n", spm::evtmgr_cmd::evtGetValue(eventEntry, LW(10)));
     if (plotValue == 0x21){
     for (int i = 0; i < 535; i++) {
       if (NPCWork->entries[i].tribeId == 270) {
@@ -135,9 +134,6 @@ int checkBossHealth() {
         health = NPCWork->entries[i].hp;
       }
     }}
-    if (plotValue == 0x72){
-      globals->gsw0 = 0x73;
-    }
     if (plotValue == 0xb8){
       globals->gsw0 = 0xb9;
     }
@@ -824,6 +820,15 @@ void patchMarioDamage(){
               int damage = 0;
               if (damageType == 20) return 2; //Shell Shock Damage Nerf
               switch(tribeId) {
+                case 211:
+                damage = 1;
+                break;
+                case 214:
+                damage = 1;
+                break;
+                case 217:
+                damage = 1;
+                break;
                 case 270:
                 damage = 100;
                 break;
@@ -906,24 +911,7 @@ void patchMarioDamage(){
             }
         );
 }
-/* ninjoe testing
-s32 (*evt_npc_set_unitwork)(spm::evtmgr::EvtEntry* evtEntry, bool firstRun);
-void patchUnitwork() {
 
-  evt_npc_set_unitwork = patch::hookFunction(spm::evt_npc::evt_npc_set_unitwork,
-    [](spm::evtmgr::EvtEntry* evtEntry, bool firstRun)
-            {
-              spm::evtmgr::EvtVar *args = (spm::evtmgr::EvtVar *)evtEntry->pCurData;
-              if (args[1] == 11 && args[2] == 0) {
-                wii::os::OSReport("%p\n", evtEntry->scriptStart);
-              }
-
-              return evt_npc_set_unitwork(evtEntry, firstRun);
-            }
-        );
-
-}
-*/
 void patchBarry()
 {
   //check if the version is eu0, if not then change the assembly to point to the correct float which is 0x8 off between versions
