@@ -1617,7 +1617,7 @@ void main() {
   patchStandardDeathScript();
   wii::tpl::TPLHeader *myTplHeader = nullptr;
   patchTpl(116, 0, (wii::tpl::TPLHeader *)spm::icondrv::icondrv_wp->wiconTpl->sp->data, myTplHeader, "./a/n_mg_flower-", true);
-  hampter(); //will always live in our memories
+  //hampter(); //will always live in our memories
 }
 
 }
