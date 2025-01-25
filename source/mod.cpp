@@ -136,7 +136,7 @@ int checkBossHealth() {
         health = NPCWork->entries[i].hp;
       }
     }}
-    if (plotValue == 0xb8){
+    if (plotValue == 0xb7){
       globals->gsw0 = 0xb9;
     }
     if (plotValue == 0x73){
@@ -422,11 +422,11 @@ static void setBossHP() {
   spm::npcdrv::npcTribes[289].maxHp = 10; //Dimentio 2
   spm::npcdrv::npcTribes[272].maxHp = 20; //O'Cabbage
   //spm::npcdrv::npcTribes[319].maxHp = 20; //King Croacus
-  spm::npcdrv::npcTribes[282].maxHp = 15; //Mimi
-  spm::npcdrv::npcTribes[300].maxHp = 36; //Brobot L-Type
+  spm::npcdrv::npcTribes[282].maxHp = 20; //Mimi
+  spm::npcdrv::npcTribes[300].maxHp = 255; //Brobot L-Type
   spm::npcdrv::npcTribes[316].maxHp = 12; //Bowser 2
-  //spm::npcdrv::npcTribes[327].maxHp = 30; //Bonechill
-  spm::npcdrv::npcTribes[273].maxHp = 100; //O'Chunks 3
+  spm::npcdrv::npcTribes[327].maxHp = 90; //Bonechill
+  spm::npcdrv::npcTribes[273].maxHp = 30; //O'Chunks 3
   spm::npcdrv::npcTribes[292].maxHp = 5; //Dimentio 3
   spm::npcdrv::npcTribes[305].maxHp = 25; //Count Bleck
   spm::npcdrv::npcTribes[309].maxHp = 170; //Super Dimentio
@@ -435,23 +435,16 @@ static void setBossHP() {
   spm::npcdrv::npcTribes[332].maxHp = 12; //Dark Peach
   spm::npcdrv::npcTribes[333].maxHp = 12; //Dark Bowser
 }
-static void setBossXp() {
-  /*for (int i = 0; i < 535; i++) {
-    if (spm::npcdrv::npcTribes[i].killXp >= 3) {
-     int newXp = spm::npcdrv::npcTribes[i].killXp / 3;
-     spm::npcdrv::npcTribes[i].killXp = newXp;
-    }
-  }*/
-}
+
 /*
   Gives all bosses the megabite defense stat
 */
+spm::npcdrv::NPCDefense fireDef;
 static void setBossDef() {
   spm::npcdrv::NPCDefense def;
   def.type = 0x0;
   def.defense = 0x2;
   def.flags = 0x2;
-  spm::npcdrv::NPCDefense fireDef;
   fireDef.type = 0xA;
   fireDef.defense = 0x64;
   fireDef.flags = 0x0;
@@ -633,10 +626,29 @@ spm::mapdrv::mapGrpFlagOn(0, "A3_doa_05", 1);
 return 2;
 }
 
+s32 checkBboxChonkyBoi(spm::evtmgr::EvtEntry * evtEntry, bool firstRun) {
+  spm::evtmgr::EvtVar *args = (spm::evtmgr::EvtVar *)evtEntry->pCurData;
+  wii::mtx::Vec3 min;
+  wii::mtx::Vec3 max;
+  spm::hitdrv::hitGetMapEntryBbox(0, &min, &max);
+  f32 x = spm::evtmgr_cmd::evtGetFloat(evtEntry, args[0]);
+  if (x < min.x)
+  {
+    x += 300.0;
+  }
+  if (x > max.x)
+  {
+    x -= 300.0;
+  }
+  spm::evtmgr_cmd::evtSetFloat(evtEntry, args[0], x);
+  return 2;
+}
+
 EVT_DECLARE_USER_FUNC(itemCharm, 0)
 EVT_DECLARE_USER_FUNC(giveHampterCheese, 0)
 EVT_DECLARE_USER_FUNC(reduceEnemyRequirements, 0)
 EVT_DECLARE_USER_FUNC(removeAbilities, 0)
+EVT_DECLARE_USER_FUNC(checkBboxChonkyBoi, 1)
 
 EVT_BEGIN(insertNop)
   SET(LW(0), 0)
@@ -805,7 +817,7 @@ void patchMarioDamage(){
     [](s32 damageType, s32 tribeId)
             {
               //spm::npcdrv::NPCWork * NPCWork = spm::npcdrv::npcGetWorkPtr();
-              //wii::os::OSReport("%d\n", damageType);
+              wii::os::OSReport("%d\n", damageType);
               /*if (damageType == 1) {
                 spm::setup_data::MiscSetupDataV6 miscSetupData;
                 s32 test1 = 0x80a7cfc0;
@@ -838,7 +850,9 @@ void patchMarioDamage(){
                 damage = 1;
                 break;
                 case 273:
-                damage = 2;
+                damage = 1;
+                if (spm::mario::marioGetPtr()->miscFlags & 0x4000) {return 0;}
+                //if (damageType == 8) {return 1;}
                 break;
                 case 282:
                 damage = 1;
@@ -1394,11 +1408,54 @@ EVT_BEGIN(activateHampter)
   USER_FUNC(giveHampterCheese)
 RETURN_FROM_CALL()
 
+  spm::evtmgr::EvtScriptCode* onSpawn = spm::npcdrv::npcEnemyTemplates[183].onSpawnScript;
+  spm::evtmgr::EvtScriptCode* chonkyAttackScript = getInstructionEvtArg(onSpawn, 41, 3);
+  spm::evtmgr::EvtScriptCode* throwBlockScript = getInstructionEvtArg(chonkyAttackScript, 109, 0);
+  spm::evtmgr::EvtScriptCode* fartAttack = getInstructionEvtArg(chonkyAttackScript, 164, 0);
+
+
+EVT_BEGIN(oChunkSucks)
+  SET(LW(10), 0)
+RETURN_FROM_CALL()
+
+EVT_BEGIN(oChunkSucks2)
+  SET(LW(0), 75)
+RETURN_FROM_CALL()
+
+EVT_BEGIN(oChunkSucks3)
+  USER_FUNC(spm::evt_sub::evt_sub_random, 100, LW(1))
+RETURN_FROM_CALL()
+
+EVT_BEGIN(sillyFunChunks)
+  USER_FUNC(spm::evt_npc::evt_npc_get_position, PTR("me"), LW(1), LW(2), LW(3))
+  USER_FUNC(spm::evt_mario::evt_mario_get_pos, LW(5), LW(6), LW(7))
+  IF_LARGE(LW(1), LW(5))
+    ADD(LW(1), 150)
+  ELSE()
+    SUB(LW(1), 150)
+  END_IF()
+  USER_FUNC(spm::evt_snd::evt_snd_sfxon_npc, PTR("SFX_BS_DDN_JUMP1"), PTR("me"))
+  USER_FUNC(checkBboxChonkyBoi, LW(1))
+  USER_FUNC(spm::evt_npc::evt_npc_arc_to, PTR("me"), LW(1), LW(2), LW(3), 500, 0, FLOAT(100.0), 0, 256, 0)
+  USER_FUNC(spm::evt_sub::evt_sub_random, 100, LW(1))
+  IF_LARGE(LW(1), 50)
+    RUN_CHILD_EVT(throwBlockScript)
+  ELSE()
+    RUN_CHILD_EVT(fartAttack)
+  END_IF()
+RETURN_FROM_CALL()
+
+EVT_BEGIN(increaseFartSpeed)
+  USER_FUNC(spm::evt_npc::evt_npc_glide_to, PTR("me"), LW(0), 400, LW(2), 600, 0, 0, 1, 0, 0)
+RETURN_FROM_CALL()
+
 void hampter()
 {
     spm::map_data::MapData * mi3_01_md = spm::map_data::mapDataPtr("mi3_01");
     evtpatch::hookEvtReplaceBlock(mi3_01_md->initScript, 47, (spm::evtmgr::EvtScriptCode*)activateHampter, 57);
 }
+
+spm::evtmgr::EvtScriptCode chunkFloat[] = { IF_LARGE_EQUAL(LW(1), FLOAT(900.0)) };
 
 void hookChunkScripts()
 {
@@ -1412,6 +1469,27 @@ void hookChunkScripts()
   evtpatch::hookEvt(stoneTabletScript, 1, (spm::evtmgr::EvtScriptCode*)checkForDimentio);
   evtpatch::hookEvtReplace(oChunksDeath, 146, (spm::evtmgr::EvtScriptCode*)dimentioMusic1);
   evtpatch::hookEvtReplaceBlock(oChunksDeath, 147, (spm::evtmgr::EvtScriptCode*)turnNull, 150);
+
+  // 8-1
+
+  spm::evtmgr::EvtScriptCode* grabScript = getInstructionEvtArg(chonkyAttackScript, 182, 0);
+  spm::evtmgr::EvtScriptCode* jumpScript = getInstructionEvtArg(chonkyAttackScript, 112, 0);
+  //evtpatch::hookEvtReplaceBlock(chonkyAttackScript, 105, (spm::evtmgr::EvtScriptCode*)turnNull, 127);
+  evtpatch::hookEvt(chonkyAttackScript, 98, (spm::evtmgr::EvtScriptCode*)oChunkSucks);
+  //evtpatch::hookEvtReplace(chonkyAttackScript, 148, (spm::evtmgr::EvtScriptCode*)oChunkSucks2);
+  evtpatch::hookEvtReplace(chonkyAttackScript, 155, (spm::evtmgr::EvtScriptCode*)sillyFunChunks);
+  evtpatch::hookEvtReplace(chonkyAttackScript, 144, (spm::evtmgr::EvtScriptCode*)oChunkSucks3);
+  evtpatch::hookEvtReplace(fartAttack, 23, (spm::evtmgr::EvtScriptCode*)increaseFartSpeed);
+
+  //evtpatch::hookEvt(jumpScript, 1, (spm::evtmgr::EvtScriptCode*)changeayayay);
+  //evtpatch::replaceEvt(chonkyAttackScript, 112, chunkFloat, sizeof(chunkFloat));
+  evtpatch::hookEvtReplace(chonkyAttackScript, 15, (spm::evtmgr::EvtScriptCode*)turnNull);
+  evtpatch::hookEvtReplace(chonkyAttackScript, 16, (spm::evtmgr::EvtScriptCode*)turnNull);
+  evtpatch::hookEvtReplace(fartAttack, 114, (spm::evtmgr::EvtScriptCode*)turnNull);
+  evtpatch::hookEvtReplace(fartAttack, 116, (spm::evtmgr::EvtScriptCode*)turnNull);
+  evtpatch::hookEvtReplace(fartAttack, 118, (spm::evtmgr::EvtScriptCode*)turnNull);
+  evtpatch::replaceEvt(chonkyAttackScript, 174, chunkFloat, sizeof(chunkFloat));
+
 }
 
 void hookBleckScripts()
@@ -1598,7 +1676,6 @@ void main() {
   titleScreenCustomTextPatch();
   getStandardDeathScript();
   setBossHP();
-  setBossXp();
   setBossDef();
   patchMarioDamage();
   patchItems();

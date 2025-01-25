@@ -248,7 +248,7 @@ void hookEvtByOffset(EvtScriptCode* script, s32 offset, EvtScriptCode* dst) {
 /// @param script The EvtScriptCode that will be replaced
 /// @param line The line number to hook at, 1-indexed
 /// @param dst The EvtScriptCode that will be executed
-/// @param dst The size of dst
+/// @param size The size of dst
 /// @example evtpatch::replaceEvt(jaydesRequest, 1, testCall, sizeof(testCall));
 void replaceEvt(EvtScriptCode* script, s32 line, EvtScriptCode* dst, s32 size) {
     replaceEvtByOffset(script, getLineOffset(script, line), dst, size);
@@ -257,7 +257,7 @@ void replaceEvt(EvtScriptCode* script, s32 line, EvtScriptCode* dst, s32 size) {
 /// @param script The EvtScriptCode that will be replaced
 /// @param offset The offset to hook at, in EvtScriptCodes, from the start of the script
 /// @param dst The EvtScriptCode that will be executed
-/// @param dst The size of dst
+/// @param size The size of dst
 void replaceEvtByOffset(EvtScriptCode* script, s32 offset, EvtScriptCode* dst, s32 size) {
     EvtScriptCode* src = script + offset;
     assert(isStartOfInstruction(src), "Cannot hook on non-instruction, what are you doing :sob:");
