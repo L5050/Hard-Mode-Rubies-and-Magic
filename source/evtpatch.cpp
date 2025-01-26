@@ -206,17 +206,6 @@ void insertTrampolineCall(EvtScriptCode* ptr, EvtScriptCode* script) {
     ptr[TRAMPOLINE_CALL_EVT_OFFSET] = reinterpret_cast<s32>(script);
 }
 
-/// @brief Patches a script with another script of an equal or smaller size
-/// @param ptr The place to write the instruction at
-/// @param scriptCode The EvtScriptCode to replace the destination with
-/// @param dst The size of dst
-static void insertScriptCode(EvtScriptCode* ptr, EvtScriptCode* scriptCode, s32 size) {
-    //wii::os::OSReport("%x %x %x %x\n", (unsigned char)ptr[0], (unsigned char)ptr[1], (unsigned char)ptr[2], (unsigned char)ptr[3]);
-    //wii::os::OSReport("%x %x %x %x\n", (unsigned char)scriptCode[0], (unsigned char)scriptCode[1], (unsigned char)scriptCode[2], (unsigned char)scriptCode[3]);
-    msl::string::memcpy(ptr, scriptCode, size);
-    //wii::os::OSReport("%x %x %x %x\n", (unsigned char)ptr[0], (unsigned char)ptr[1], (unsigned char)ptr[2], (unsigned char)ptr[3]);
-}
-
 /// @brief Hooks into an evt script, automatically preserving original instructions
 /// @param script The evt script that will be hooked into
 /// @param line The line number to hook at, 1-indexed
@@ -244,33 +233,25 @@ void hookEvtByOffset(EvtScriptCode* script, s32 offset, EvtScriptCode* dst) {
     insertTrampolineCall(src, dynamicEvtForwarder);
 }
 
-/// @brief Replaces an EvtScriptCode
-/// @param script The EvtScriptCode that will be replaced
-/// @param line The line number to hook at, 1-indexed
-/// @param dst The EvtScriptCode that will be executed
-/// @param size The size of dst
-/// @example evtpatch::replaceEvt(jaydesRequest, 1, testCall, sizeof(testCall));
-void replaceEvt(EvtScriptCode* script, s32 line, EvtScriptCode* dst, s32 size) {
-    replaceEvtByOffset(script, getLineOffset(script, line), dst, size);
+/// @brief Patches a single instruction in a script with another instruction of the same size or smaller
+/// @param script The script that will be patched
+/// @param line The line number of the instruction to patch, 1-indexed
+/// @param replacement The instruction
+void patchEvtInstruction(EvtScriptCode* script, s32 line, EvtScriptCode* replacement) {
+    patchEvtInstructionByOffset(script, getLineOffset(script, line), replacement);
 }
-/// @brief Replaces an EvtScriptCode
-/// @param script The EvtScriptCode that will be replaced
-/// @param offset The offset to hook at, in EvtScriptCodes, from the start of the script
-/// @param dst The EvtScriptCode that will be executed
-/// @param size The size of dst
-void replaceEvtByOffset(EvtScriptCode* script, s32 offset, EvtScriptCode* dst, s32 size) {
+
+/// @brief Patches a single instruction in a script with another instruction of the same size or smaller
+/// @param script The script that will be patched
+/// @param line The line number of the instruction to patch, 1-indexed
+/// @param replacement The patched instruction
+void patchEvtInstructionByOffset(EvtScriptCode* script, s32 offset, EvtScriptCode* replacement) {
     EvtScriptCode* src = script + offset;
     assert(isStartOfInstruction(src), "Cannot hook on non-instruction, what are you doing :sob:");
-    u8 argNum1 = (script[1] << 8) | script[0];
-    u8 argNum2 = (dst[1] << 8) | dst[0];
-    assert(argNum1 > argNum2, "Replacement instruction too large");
+    assert(getInstructionLength(src) >= getInstructionLength(replacement), "Replacement instruction too large; use hookEvtReplace");
 
-    u32 instructionLength = sizeof(*dst) / sizeof(EvtScriptCode);
-    u32 lenOriginalInstructions = getInstructionBlockLength(src, instructionLength);
-    u32 sizeOriginalInstructions = lenOriginalInstructions * sizeof(EvtScriptCode);
-
-    msl::string::memset(src, 0, sizeOriginalInstructions); // pad anything left with 0s
-    insertScriptCode(src, dst, size);
+    msl::string::memset(src, 0, getInstructionLength(src)); // pad anything left with 0s
+    msl::string::memcpy(src, replacement, getInstructionSize(replacement));
 }
 
 /// @brief Adds a hook to another evt script, without preserving original instructions
