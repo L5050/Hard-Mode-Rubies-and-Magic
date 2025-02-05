@@ -1,5 +1,5 @@
 # SPM-Hard-Mode-Rubies-And-Magic
-Rel mod for my Super Paper Mario Hard Mode mod. Full releases available for US0, US2, JP0, and PAL versions of SPM
+Rel mod for my Super Paper Mario Hard Mode mod. Full releases available for the US0, US2, JP0, and PAL versions of SPM
 
 ![Hard Mode Icon](https://media.discordapp.net/attachments/1332233498961907743/1332440649496133824/HardMode_Logo_NoVoid.png?ex=679b324e&is=6799e0ce&hm=e2602d9c0eaac71012ffb255d3f7dc58c91acddd5bd168c13a5349e12fe2e190&=&format=webp&quality=lossless&width=650&height=648)
 
