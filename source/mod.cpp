@@ -21,6 +21,7 @@
 #include <spm/evt_fairy.h>
 #include <spm/evt_guide.h>
 #include <spm/evt_mario.h>
+#include <spm/evt_item.h>
 #include <spm/evt_mobj.h>
 #include <spm/evt_msg.h>
 #include <spm/evt_npc.h>
@@ -259,13 +260,14 @@ int checkBossHealth() {
     }}
     for (int i = 0; i < 535; i++) {
       if (NPCWork->entries[i].tribeId == 282 || NPCWork->entries[i].tribeId == 273 || NPCWork->entries[i].tribeId == 292 || NPCWork->entries[i].tribeId == 330 || NPCWork->entries[i].tribeId == 331 || NPCWork->entries[i].tribeId == 333 || NPCWork->entries[i].tribeId == 532) {
+        if (NPCWork->entries[i].flag8 & 0x80000000 != 0)
         return NPCWork->entries[i].hp;
       }
     }
   return health;
 }
 
-static void bossHealthDisplay(spm::seqdrv::SeqWork *wp)
+static void bossHealthDisplay()
 {
     if (checkBossHealth() > 0){
       wii::gx::GXColor green = {
@@ -285,7 +287,7 @@ static void bossHealthDisplay(spm::seqdrv::SeqWork *wp)
     f32 x = -((spm::fontmgr::FontGetMessageWidth(msg) * scale) / 2);
     spm::fontmgr::FontDrawString(x-300, 70.0f, msg);}
 }
-static void bossActualHealth(spm::seqdrv::SeqWork *wp)
+static void bossActualHealth()
 {
     if (checkBossHealth() > 0){
       wii::gx::GXColor green = {
@@ -320,9 +322,9 @@ static void bossActualHealth(spm::seqdrv::SeqWork *wp)
     spm::fontmgr::FontDrawString(x-320, 50.0f, msg);
   }
   }
-    seq_gameMainReal(wp);
+    
 }
-void charmTextGenerator(spm::seqdrv::SeqWork *wp)
+static void charmTextGenerator()
 {
   int charmStats = checkCharmNum();
   if (charmStats > 0){
@@ -342,9 +344,9 @@ void charmTextGenerator(spm::seqdrv::SeqWork *wp)
   spm::fontmgr::FontDrawRainbowColorOff();
   f32 x = -((spm::fontmgr::FontGetMessageWidth(msg) * scale) / 2);
   spm::fontmgr::FontDrawString(x+265, 70.0f, msg);}
-  seq_gameMainReal(wp);
+  
 }
-void charmKillsTextGenerator(spm::seqdrv::SeqWork *wp)
+static void charmKillsTextGenerator()
 {
   int charmNum = checkCharmNum();
   if (charmNum > 0){
@@ -367,9 +369,9 @@ void charmKillsTextGenerator(spm::seqdrv::SeqWork *wp)
   spm::fontmgr::FontDrawRainbowColor();
   f32 x = -((spm::fontmgr::FontGetMessageWidth(msg) * scale) / 2);
   spm::fontmgr::FontDrawString(x+350, 55.0f, msg);}
-  seq_gameMainReal(wp);
+  
 }
-void charmNumText(spm::seqdrv::SeqWork *wp)
+static void charmNumText()
 {
   int charmStats = checkCharmNum();
   if (charmStats > 0){
@@ -389,9 +391,9 @@ void charmNumText(spm::seqdrv::SeqWork *wp)
   spm::fontmgr::FontDrawRainbowColorOff();
   f32 x = -((spm::fontmgr::FontGetMessageWidth(msg) * scale) / 2);
   spm::fontmgr::FontDrawString(x+322, 100.0f, msg);}
-  seq_gameMainReal(wp);
+  
 }
-void charmNumLeftText(spm::seqdrv::SeqWork *wp)
+static void charmNumLeftText()
 {
   int charmStats = checkCharmNum();
   if (charmStats > 0){
@@ -413,16 +415,17 @@ void charmNumLeftText(spm::seqdrv::SeqWork *wp)
   spm::fontmgr::FontDrawRainbowColor();
   f32 x = -((spm::fontmgr::FontGetMessageWidth(msg) * scale) / 2);
   spm::fontmgr::FontDrawString(x+350, 85.0f, msg);}
-  seq_gameMainReal(wp);
+  
 }
-void customUI(spm::seqdrv::SeqWork *wp)
+static void customUI(spm::seqdrv::SeqWork *wp)
 {
-  charmTextGenerator(wp);
-  charmKillsTextGenerator(wp);
-  charmNumText(wp);
-  charmNumLeftText(wp);
-  bossHealthDisplay(wp);
-  bossActualHealth(wp);
+  charmTextGenerator();
+  charmKillsTextGenerator();
+  charmNumText();
+  charmNumLeftText();
+  bossHealthDisplay();
+  bossActualHealth();
+  seq_gameMainReal(wp);
 }
 static void titleScreenCustomTextPatch()
 {
@@ -1104,7 +1107,7 @@ void patchMarioDamage(){
         );
 }
 
-void patchBarry()
+static void patchBarry()
 {
   //check if the version is eu0, if not then change the assembly to point to the correct float which is 0x8 off between versions
   #ifdef SPM_EU0
@@ -1116,7 +1119,7 @@ void patchBarry()
   #endif
 }
 
-void patchVariables() {
+static void patchVariables() {
     writeWord(&spm::mario::marioCalcDamageToEnemy, 0x16C, 0x57FF003E);
       writeWord(&spm::mario::marioCalcDamageToEnemy, 0xC8, 0x57FF003C);
        writeWord(&spm::mario::marioCalcDamageToEnemy, 0x94, 0x57FF003C);
@@ -1402,7 +1405,7 @@ USER_FUNC(spm::evt_snd::evt_snd_sfxon_npc, PTR("SFX_EVT_100_PC_LINE_TURN1"), LW(
 USER_FUNC(spm::evt_npc::evt_npc_flip, LW(10))
 USER_FUNC(spm::evt_npc::evt_npc_wait_flip_finished, LW(10))
 USER_FUNC(spm::evt_npc::evt_npc_flag8_onoff, LW(10), 1, 8)
-USER_FUNC(spm::evt_npc::func_80102bf8, LW(10))
+USER_FUNC(spm::evt_npc::evt_npc_restart_evt_id, LW(10))
 USER_FUNC(spm::evt_npc::evt_npc_set_unitwork, LW(10), 10, 0)
 USER_FUNC(spm::evt_mario::evt_mario_key_on)
 DO(0)
@@ -1444,7 +1447,7 @@ USER_FUNC(spm::evt_snd::evt_snd_sfxon_npc, PTR("SFX_EVT_100_PC_LINE_TURN1"), LW(
 USER_FUNC(spm::evt_npc::evt_npc_flip, LW(10))
 USER_FUNC(spm::evt_npc::evt_npc_wait_flip_finished, LW(10))
 USER_FUNC(spm::evt_npc::evt_npc_flag8_onoff, LW(10), 1, 8)
-USER_FUNC(spm::evt_npc::func_80102bf8, LW(10))
+USER_FUNC(spm::evt_npc::evt_npc_restart_evt_id, LW(10))
 USER_FUNC(spm::evt_npc::evt_npc_set_unitwork, LW(10), 10, 0)
 USER_FUNC(spm::evt_mario::evt_mario_key_on)
 DO(0)
@@ -1486,7 +1489,7 @@ USER_FUNC(spm::evt_snd::evt_snd_sfxon_npc, PTR("SFX_EVT_100_PC_LINE_TURN1"), LW(
 USER_FUNC(spm::evt_npc::evt_npc_flip, LW(10))
 USER_FUNC(spm::evt_npc::evt_npc_wait_flip_finished, LW(10))
 USER_FUNC(spm::evt_npc::evt_npc_flag8_onoff, LW(10), 1, 8)
-USER_FUNC(spm::evt_npc::func_80102bf8, LW(10))
+USER_FUNC(spm::evt_npc::evt_npc_restart_evt_id, LW(10))
 RETURN_FROM_CALL()
 
 const char * dimentio_stg5_1 = "<p>\n"
@@ -1824,8 +1827,10 @@ void hookMimiScripts()
   spm::evtmgr::EvtScriptCode* mimiMoneyWave = getInstructionEvtArg(mimiUnk2, 65, 0);
   #ifdef SPM_EU0
     spm::evtmgr::EvtScriptCode* mimiTrueHit = getInstructionEvtArg(mimiOnHitScript, 55, 0);
+    evtpatch::patchEvtInstruction(mimiTrueHit, 74, EVT_CAST(IF_LARGE(GSW(0), 0)));
   #else
     spm::evtmgr::EvtScriptCode* mimiTrueHit = getInstructionEvtArg(mimiOnHitScript, 54, 0);
+    evtpatch::patchEvtInstruction(mimiTrueHit, 73, EVT_CAST(IF_LARGE(GSW(0), 0)));
   #endif
   //evtpatch::hookEvt(mimiUnk2, 54, (spm::evtmgr::EvtScriptCode*)removeMimiBasicWalk);
   evtpatch::hookEvtReplace(mimiMainAttack, 31, (spm::evtmgr::EvtScriptCode*)turnNull);
@@ -1836,7 +1841,7 @@ void hookMimiScripts()
   evtpatch::hookEvtReplace(mimiTrueHit, 53, (spm::evtmgr::EvtScriptCode*)turnNull);
   evtpatch::hookEvtReplace(mimiTrueHit, 72, (spm::evtmgr::EvtScriptCode*)checkForDan1);
   evtpatch::hookEvtReplace(mimiTrueHit, 75, (spm::evtmgr::EvtScriptCode*)checkForDan2);
-  evtpatch::patchEvtInstruction(mimiTrueHit, 74, EVT_CAST(IF_LARGE(GSW(0), 0)));
+
   evtpatch::hookEvt(mimiTrueHit, 116, (spm::evtmgr::EvtScriptCode*)mimiFlag8_2048);
   evtpatch::hookEvt(mimiUnk2, 33, (spm::evtmgr::EvtScriptCode*)changeMimiSpeed);
   evtpatch::hookEvt(mimiUnk2, 54, (spm::evtmgr::EvtScriptCode*)changeBehaviorToAttack);
@@ -1876,6 +1881,7 @@ void hookOtherMimiScripts()
 {
   spm::evtmgr::EvtScriptCode* mimiOnHitScript = spm::npcdrv::npcEnemyTemplates[187].unkScript3;
   spm::evtmgr::EvtScriptCode* script_2 = getInstructionEvtArg(mimiOnHitScript, 10, 0);
+  #ifdef SPM_EU0
   spm::evtmgr::EvtScriptCode* standard_onhit = getInstructionEvtArg(script_2, 1, 0);
   evtpatch::hookEvtReplace(script_2, 3, (spm::evtmgr::EvtScriptCode*)mimiInvFrames);
   evtpatch::hookEvtReplace(standard_onhit, 228, (spm::evtmgr::EvtScriptCode*)jumpToLbl50);
@@ -1892,6 +1898,25 @@ void hookOtherMimiScripts()
   evtpatch::hookEvtReplace(standard_onhit, 294, (spm::evtmgr::EvtScriptCode*)standardOnHit);
   evtpatch::hookEvtReplace(standard_onhit, 313, (spm::evtmgr::EvtScriptCode*)standardOnHit);
   evtpatch::hookEvtReplace(standard_onhit, 321, (spm::evtmgr::EvtScriptCode*)standardOnHit);
+  #else
+  spm::evtmgr::EvtScriptCode* standard_onhit = getInstructionEvtArg(script_2, 1, 0);
+  //spm::evtmgr::EvtScriptCode* standard_onhit = getInstructionEvtArg(script_2_1, 165, 0);
+  evtpatch::hookEvtReplace(script_2, 3, (spm::evtmgr::EvtScriptCode*)mimiInvFrames);
+  evtpatch::hookEvtReplace(standard_onhit, 225, (spm::evtmgr::EvtScriptCode*)jumpToLbl50);
+  evtpatch::hookEvtReplace(standard_onhit, 182, (spm::evtmgr::EvtScriptCode*)standardOnHit);
+  evtpatch::hookEvtReplace(standard_onhit, 188, (spm::evtmgr::EvtScriptCode*)standardOnHit);
+  evtpatch::hookEvtReplace(standard_onhit, 200, (spm::evtmgr::EvtScriptCode*)standardOnHit);
+  evtpatch::hookEvtReplace(standard_onhit, 203, (spm::evtmgr::EvtScriptCode*)standardOnHit);
+  evtpatch::hookEvtReplace(standard_onhit, 206, (spm::evtmgr::EvtScriptCode*)standardOnHit);
+  evtpatch::hookEvtReplace(standard_onhit, 216, (spm::evtmgr::EvtScriptCode*)standardOnHit);
+  evtpatch::hookEvtReplace(standard_onhit, 219, (spm::evtmgr::EvtScriptCode*)standardOnHit);
+  evtpatch::hookEvtReplace(standard_onhit, 231, (spm::evtmgr::EvtScriptCode*)standardOnHit);
+  evtpatch::hookEvtReplace(standard_onhit, 237, (spm::evtmgr::EvtScriptCode*)standardOnHit);
+  evtpatch::hookEvtReplace(standard_onhit, 289, (spm::evtmgr::EvtScriptCode*)standardOnHit);
+  evtpatch::hookEvtReplace(standard_onhit, 291, (spm::evtmgr::EvtScriptCode*)standardOnHit);
+  evtpatch::hookEvtReplace(standard_onhit, 310, (spm::evtmgr::EvtScriptCode*)standardOnHit);
+  evtpatch::hookEvtReplace(standard_onhit, 318, (spm::evtmgr::EvtScriptCode*)standardOnHit);
+  #endif
 }
 
 static spm::npcdrv::NPCTribeAnimDef ninja_anims[] =  {
@@ -2074,6 +2099,36 @@ EVT_BEGIN(check_challenge_completion)
     USER_FUNC(returnNewMapName, LW(1))
     USER_FUNC(spm::evt_msg::evt_msg_print_insert, 1, PTR(challenger_won), 0, 0, LW(1))
     USER_FUNC(set_challenge_success, 0)
+    USER_FUNC(spm::evt_sub::evt_sub_random, 7, LW(0))
+    USER_FUNC(spm::evt_mario::evt_mario_get_pos, LW(5), LW(6), LW(7))
+    SWITCH(LW(0))
+      CASE_EQUAL(0)
+      CASE_EQUAL(6)
+      CASE_EQUAL(7)
+        USER_FUNC(spm::evt_item::evt_item_entry, PTR("item"), 83, LW(5), LW(6), LW(7), 0, 0, 0, 0, 0)
+        USER_FUNC(spm::evt_item::evt_item_flag_onoff, 1, PTR("item"), 8)
+        USER_FUNC(spm::evt_item::evt_item_wait_collected, PTR("item"))
+      CASE_EQUAL(1)
+        USER_FUNC(spm::evt_item::evt_item_entry, PTR("item"), 80, LW(5), LW(6), LW(7), 0, 0, 0, 0, 0)
+        USER_FUNC(spm::evt_item::evt_item_flag_onoff, 1, PTR("item"), 8)
+        USER_FUNC(spm::evt_item::evt_item_wait_collected, PTR("item"))
+      CASE_EQUAL(2)
+        USER_FUNC(spm::evt_item::evt_item_entry, PTR("item"), 105, LW(5), LW(6), LW(7), 0, 0, 0, 0, 0)
+        USER_FUNC(spm::evt_item::evt_item_flag_onoff, 1, PTR("item"), 8)
+        USER_FUNC(spm::evt_item::evt_item_wait_collected, PTR("item"))
+      CASE_EQUAL(3)
+        USER_FUNC(spm::evt_item::evt_item_entry, PTR("item"), 118, LW(5), LW(6), LW(7), 0, 0, 0, 0, 0)
+        USER_FUNC(spm::evt_item::evt_item_flag_onoff, 1, PTR("item"), 8)
+        USER_FUNC(spm::evt_item::evt_item_wait_collected, PTR("item"))
+      CASE_EQUAL(4)
+        USER_FUNC(spm::evt_item::evt_item_entry, PTR("item"), 101, LW(5), LW(6), LW(7), 0, 0, 0, 0, 0)
+        USER_FUNC(spm::evt_item::evt_item_flag_onoff, 1, PTR("item"), 8)
+        USER_FUNC(spm::evt_item::evt_item_wait_collected, PTR("item"))
+      CASE_EQUAL(5)
+        USER_FUNC(spm::evt_item::evt_item_entry, PTR("item"), 96, LW(5), LW(6), LW(7), 0, 0, 0, 0, 0)
+        USER_FUNC(spm::evt_item::evt_item_flag_onoff, 1, PTR("item"), 8)
+        USER_FUNC(spm::evt_item::evt_item_wait_collected, PTR("item"))
+    END_SWITCH()
     USER_FUNC(get_current_challenge, LW(0))
     SWITCH(LW(0))
       CASE_EQUAL(0)
@@ -2103,7 +2158,12 @@ void hookSammerScripts()
   //sammer_mario_x_wait_evt = getInstructionEvtArg(sammer_fight_setup_evt, 60, 0);
   evtpatch::hookEvt(sammer_fight_setup_evt, 1, (spm::evtmgr::EvtScriptCode*)spawn_challenger);
   evtpatch::hookEvt(sammer_door_disable_evt, 1, (spm::evtmgr::EvtScriptCode*)toggleSammerFightStart_fwd);
-  evtpatch::hookEvt(sammer_death_evt, 91, (spm::evtmgr::EvtScriptCode*)check_challenge_completion);
+  #ifdef SPM_EU0
+    evtpatch::hookEvt(sammer_death_evt, 91, (spm::evtmgr::EvtScriptCode*)check_challenge_completion);
+  #else
+    evtpatch::hookEvt(sammer_death_evt, 90, (spm::evtmgr::EvtScriptCode*)check_challenge_completion);
+  #endif
+
 }
 
 spm::evtmgr::EvtScriptCode* getStandardDeathScript()
@@ -2239,10 +2299,12 @@ void main() {
   kingSammerMain();
   patchStandardDeathScript();
   hookSammerScripts();
-  hookShadooScripts();
+  //hookShadooScripts();
+  #ifdef SPM_EU0
   wii::tpl::TPLHeader *myTplHeader = nullptr;
   patchTpl(116, 0, (wii::tpl::TPLHeader *)spm::icondrv::icondrv_wp->wiconTpl->sp->data, myTplHeader, "./a/n_mg_flower-", true);
-  //hampter(); //will always live in our memories
+  #endif
+  //hampter(); // will always live in our memories
 }
 
 }

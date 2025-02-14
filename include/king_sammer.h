@@ -23,6 +23,7 @@ struct {
 EVT_DECLARE(toggleSammerFightStart_fwd)
 EVT_DECLARE(check_challenge_completion)
 EVT_DECLARE_USER_FUNC(set_current_challenge, 1)
+EVT_DECLARE_USER_FUNC(evt_npc_to_pointer, 2)
 EVT_DECLARE_USER_FUNC(get_current_challenge, 1)
 EVT_DECLARE_USER_FUNC(set_challenge_success, 1)
 EVT_DECLARE_USER_FUNC(get_challenge_script, 1)

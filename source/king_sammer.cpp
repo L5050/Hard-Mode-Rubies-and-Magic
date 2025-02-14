@@ -95,9 +95,25 @@ static NPCTribeAnimDef tonoAnims[] = {
   RETURN()
   EVT_END()
 
+  EVT_BEGIN(tono_check_for_fall)
+    LBL(0)
+    USER_FUNC(evt_npc_get_position, PTR("me"), LW(0), LW(1), LW(2))
+    IF_SMALL(LW(1), FLOAT(-10.0))
+      USER_FUNC(spm::evt_snd::evt_snd_sfxon, PTR("SFX_F_BOMB_FIRE1"))
+      USER_FUNC(spm::evt_eff::evt_eff, 0, PTR("kemuri_test"), 0, LW(0), LW(1), LW(2), FLOAT(5.0), 0, 0, 0, 0, 0, 0, 0)
+      USER_FUNC(evt_npc_entry_from_template, 0, 32, 400, 75, 0, LW(10), EVT_NULLPTR)
+      USER_FUNC(evt_npc_delete, PTR("me"))
+      RETURN()
+    END_IF()
+  WAIT_FRM(1)
+  GOTO(0)
+  EVT_END()
+
   EVT_BEGIN(sammerOnSpawn)
     RUN_CHILD_EVT(npcEnemyTemplates[2].onSpawnScript)
     USER_FUNC(evt_npc_set_property, PTR("me"), 14, PTR(tonoAnims))
+    USER_FUNC(spm::evt_npc::evt_npc_set_part_attack_power, PTR("me"), -1, 4)
+    RUN_EVT(tono_check_for_fall)
   RETURN()
   EVT_END()
 
@@ -251,6 +267,7 @@ static NPCTribeAnimDef tonoAnims[] = {
 
   EVT_BEGIN(sammerAttack)
   LBL(1)
+  USER_FUNC(evt_npc_animflag_onoff, PTR("me"), 0, 128)
   USER_FUNC(evt_npc_set_move_mode, PTR("me"), 1)
   USER_FUNC(spm::evt_sub::evt_sub_random, 5, LW(0))
   SWITCH(LW(0))
@@ -421,12 +438,15 @@ const char * tono_2 = "<p>\n"
 "Me!\n"
 "<k>\n";
 
+
 EVT_BEGIN(tono_begin_fight)
   USER_FUNC(evt_npc_set_anim, PTR("tono"), 0, 1)
   USER_FUNC(evt_npc_set_property, PTR("tono"), 14, PTR(tonoAnims))
   USER_FUNC(evt_msg::evt_msg_print, 1, PTR(tono_1), 0, PTR("tono"))
   USER_FUNC(evt_snd::evt_snd_bgmoff_f_d, 0, 1000)
-  USER_FUNC(evt_npc_set_anim, PTR("tono"), 2, 1)
+  USER_FUNC(evt_npc_set_anim, PTR("tono"), 1, 1)
+  USER_FUNC(evt_npc_flag8_onoff, PTR("tono"), 1, 8)
+  USER_FUNC(evt_npc_flag8_onoff, PTR("tono"), 0, 134217728)
   USER_FUNC(evt_npc_walk_to, PTR("tono"), 325, 0, 0, FLOAT(40.0), 0, 0, 0)
   USER_FUNC(evt_npc_set_anim, PTR("tono"), 0, 1)
   USER_FUNC(evt_msg::evt_msg_print, 1, PTR(tono_2), 0, PTR("tono"))
@@ -435,6 +455,8 @@ EVT_BEGIN(tono_begin_fight)
   USER_FUNC(evt_snd::evt_snd_bgmon, 0, PTR("BGM_MAP_STG6_2"))
   USER_FUNC(evt_npc_get_position, PTR("tono"), LW(0), LW(1), LW(2))
   USER_FUNC(evt_npc_entry_from_template, 0, 32, LW(0), LW(1), LW(2), LW(10), EVT_NULLPTR)
+  USER_FUNC(evt_npc_flag8_onoff, PTR("tono"), 0, 8)
+  USER_FUNC(evt_npc_flag8_onoff, PTR("tono"), 1, 134217728)
   USER_FUNC(evt_npc_set_position, PTR("tono"), 0, -1000, 0)
   USER_FUNC(evt_cam::evt_cam_zoom_to_coords, 500, 11)
   USER_FUNC(evt_mario::evt_mario_key_on)
@@ -688,6 +710,14 @@ s32 check_for_ninja(evtmgr::EvtEntry * evtEntry, bool firstRun) {
   }
   wii::os::OSReport("Ninja not found\n");
   evtmgr_cmd::evtSetValue(evtEntry, args[0], 0);
+  return 2;
+}
+
+s32 evt_npc_to_pointer(evtmgr::EvtEntry * evtEntry, bool firstRun) {
+  evtmgr::EvtVar *args = (evtmgr::EvtVar *)evtEntry->pCurData;
+  spm::npcdrv::NPCEntry* npc = evtNpcNameToPtr_NoAssert(evtEntry, (char *)args[0]);
+  wii::os::OSReport("tono_ptr: %p\n", npc);
+  evtmgr_cmd::evtSetValue(evtEntry, args[1], npc);
   return 2;
 }
 
