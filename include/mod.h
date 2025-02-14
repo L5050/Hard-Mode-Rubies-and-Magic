@@ -1,5 +1,8 @@
 #pragma once
 #include "evt_cmd.h"
+#include <spm/spmario.h>
+#include <spm/mario.h>
+
 namespace mod {
 
 #define MOD_VERSION "Rubies and Magic"
@@ -12,9 +15,15 @@ EVT_DECLARE(evt_cutscene_pure_heart)
 EVT_DECLARE(evt_memcard_save)
 
 }
-spm::evtmgr::EvtScriptCode* getStandardDeathScript();
 
+extern spm::mario::MarioWork * marioWork;
+extern spm::spmario::SpmarioGlobals * globals;
+EVT_DECLARE(turnNull)
+
+spm::evtmgr::EvtScriptCode* getStandardDeathScript();
 spm::evtmgr::EvtScriptCode* getInstructionEvtArg(spm::evtmgr::EvtScriptCode* script, s32 line, int instruction);
+int checkBossHealth();
+int* getBossSequence();
 EVT_DECLARE_USER_FUNC(displayBossHealth, 0)
 EVT_DECLARE_USER_FUNC(checkBboxChonkyBoi, 1)
 void main();

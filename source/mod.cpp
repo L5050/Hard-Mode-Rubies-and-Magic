@@ -7,6 +7,9 @@
 #include "scripting.cpp"
 #include "exception.h"
 #include "romfontexpand.h"
+#include "shadoo.h"
+#include "e_dmen.h"
+#include "marioDamage.h"
 #include "patchNinja.h"
 #include "king_sammer.h"
 #include "stdlib.h"
@@ -50,7 +53,6 @@
 #include <spm/npc_dimeen_l.h>
 #include <spm/item_data_ids.h>
 #include <spm/item_data.h>
-//#include <spm/item_event_data.h>
 #include <spm/evt_shop.h>
 #include <msl/string.h>
 #include <wii/os/OSError.h>
@@ -63,12 +65,18 @@
 #include <functional>
 using namespace std;
 namespace mod {
+
 spm::mario::MarioWork * marioWork = spm::mario::marioGetPtr();
 spm::spmario::SpmarioGlobals * globals = spm::spmario::gp;
 int bossSequence = 1;
-s32 chunkFartId;
 char newMapName[32] = {0};
 u32* bossHealth = nullptr;
+
+int* getBossSequence()
+{
+  return &bossSequence;
+}
+
 /*
     Title Screen Custom Text
     Prints "SPM Hard Mode" at the top of the title screen
@@ -531,14 +539,13 @@ static void setBossDef() {
      }
    }
       spm::npcdrv::npcTribes[304].partsList[0].defenses[0] = def;
+      spm::npcdrv::npcTribes[306].partsList[0].defenses[0] = holeDef1; // if we dont do this then bleck's black holes can be jumped on without being absorbed
+      spm::npcdrv::npcTribes[306].partsList[0].defenses[1] = holeDef2; // its stupid and I fucking hate it
 
    }
 /*
     Function patching
 */
-void (*marioTakeDamage)(wii::mtx::Vec3 * position, u32 flags, s32 damage);
-
-s32 (*npcDamageMario)(spm::npcdrv::NPCEntry *npcEntry, spm::npcdrv::NPCPart *part, wii::mtx::Vec3 *position, u32 param_4, s32 damage, u32 flags);
 
 s32 scriptTakeDamage(spm::evtmgr::EvtEntry * evtEntry, bool firstRun) {
   spm::mario_pouch::MarioPouchWork * pouch = spm::mario_pouch::pouchGetPtr();
@@ -546,7 +553,6 @@ s32 scriptTakeDamage(spm::evtmgr::EvtEntry * evtEntry, bool firstRun) {
   return firstRun;
 }
 
-int (*marioCalcDamageToEnemy)(s32 damageType, s32 tribeId);
 void (*seq_gameMain)(spm::seqdrv::SeqWork *param_1);
 void (*marioSetInvincibility)(f32 frames, s32 flags);
 /*spm::evtmgr::EvtEntry * newEntry(const spm::evtmgr::EvtScriptCode * script, u8 priority, u8 flags, s32 type)
@@ -650,18 +656,6 @@ s32 dimentioQuickTimeReset(spm::evtmgr::EvtEntry * evtEntry, bool firstRun) {
 s32 unPauseGame(spm::evtmgr::EvtEntry * evtEntry, bool firstRun) {
   spm::pausewin::pausewinUnpauseGame();
   spm::spmario::spmarioSystemLevel(0);
-  return 2;
-}
-
-s32 grabChonkyFarts(spm::evtmgr::EvtEntry * evtEntry, bool firstRun) {
-  spm::evtmgr::EvtVar *args = (spm::evtmgr::EvtVar *)evtEntry->pCurData;
-  chunkFartId = spm::evtmgr_cmd::evtGetValue(evtEntry, args[0]);
-  return 2;
-}
-
-s32 returnChonkyFarts(spm::evtmgr::EvtEntry * evtEntry, bool firstRun) {
-  spm::evtmgr::EvtVar *args = (spm::evtmgr::EvtVar *)evtEntry->pCurData;
-  chunkFartId = spm::evtmgr_cmd::evtSetValue(evtEntry, args[0], chunkFartId);
   return 2;
 }
 
@@ -792,16 +786,10 @@ EVT_DECLARE_USER_FUNC(reduceEnemyRequirements, 0)
 EVT_DECLARE_USER_FUNC(removeAbilities, 0)
 EVT_DECLARE_USER_FUNC(dimentioQuickTimeReset, 0)
 EVT_DECLARE_USER_FUNC(checkBboxSammer, 1)
-EVT_DECLARE_USER_FUNC(grabChonkyFarts, 1)
-EVT_DECLARE_USER_FUNC(returnChonkyFarts, 1)
 EVT_DECLARE_USER_FUNC(returnNewMapName, 1)
 
 EVT_BEGIN(insertNop)
   SET(LW(0), 0)
-RETURN_FROM_CALL()
-
-EVT_BEGIN(runSaveScript)
-  RUN_CHILD_EVT(evt_memcard_save)
 RETURN_FROM_CALL()
 
 EVT_BEGIN(runDimiSaveScript)
@@ -874,238 +862,7 @@ void patchCooking() {
   evtpatch::hookEvtReplaceBlock(cookScript, 130, (spm::evtmgr::EvtScriptCode*)insertNop, 189);
 }
 
-s32 new_npcDamageMario(spm::npcdrv::NPCEntry *npcEntry, spm::npcdrv::NPCPart *part, wii::mtx::Vec3 *position, u32 param_4, s32 damage, u32 flags) {
-      if (npcEntry->tribeId == 284) {
-        if (npcEntry->unitWork[0] == 3) {
-          return npcDamageMario(npcEntry, part, position, param_4, damage, 1);
-        }
-      }
-      if (npcEntry->tribeId == 532) {
-        return npcDamageMario(npcEntry, part, position, param_4, 4, flags);
-      }
-  return npcDamageMario(npcEntry, part, position, param_4, damage, flags);
-}
 
-void patchMarioDamage(){
-
-  npcDamageMario = patch::hookFunction(spm::npcdrv::npcDamageMario, new_npcDamageMario);
-
-  marioTakeDamage = patch::hookFunction(spm::mario::marioTakeDamage,
-    [](wii::mtx::Vec3 * position, u32 flags, s32 damage)
-            {
-              if (marioWork->character == 2) {
-                damage = damage - 1;
-                if (damage <= 0) {
-                  damage = 1;
-                }
-              }
-              //adds the rpg elements to boss fights
-              int health = checkBossHealth();
-              s32 plotValue = globals->gsw0;
-              if (plotValue == 0x67 && bossSequence > 0){
-                if (health > 0 && health <= 3 && bossSequence == 1){
-                  //Bowser
-              bossSequence -= 1;
-              damage = 0;
-              flags = 0x4;
-              marioTakeDamage(position, flags, damage);
-              spm::pausewin::pausewinPauseGame();
-              spm::spmario::spmarioSystemLevel(1);
-              for (int i = 0; i < 33; i++) {
-            if (spm::item_event_data::itemEventDataTable[i].itemId == 68) {
-            spm::evtmgr::evtEntryType(iceStorm, 0, 0, 0);
-          }}} else {
-            marioTakeDamage(position, flags, damage * 2);
-          }} else if (plotValue == 0xd5 && bossSequence > 0){
-            if (health <= 10 && bossSequence == 1 && health >= 1){
-              //O'Cabbage
-          bossSequence -= 1;
-          damage = 0;
-          flags = 0x4;
-          marioTakeDamage(position, flags, damage);
-          spm::pausewin::pausewinPauseGame();
-          spm::spmario::spmarioSystemLevel(1);
-          for (int i = 0; i < 33; i++) {
-        if (spm::item_event_data::itemEventDataTable[i].itemId == 68) {
-        spm::evtmgr::evtEntryType(fireBurst, 0, 0, 0);
-      }}} else {
-        marioTakeDamage(position, flags, damage * 2);
-      }} else if (plotValue == 0xd5 && bossSequence > 0){
-        if (health <= 6 && bossSequence == 1){
-          //King Croacus
-      bossSequence -= 1;
-      damage = 0;
-      flags = 0x4;
-      marioTakeDamage(position, flags, damage);
-      spm::pausewin::pausewinPauseGame();
-      spm::spmario::spmarioSystemLevel(1);
-      for (int i = 0; i < 33; i++) {
-    if (spm::item_event_data::itemEventDataTable[i].itemId == 68) {
-    spm::evtmgr::evtEntryType(fireBurst, 0, 0, 0);
-  }}} else {
-    marioTakeDamage(position, flags, damage * 2);
-  }} else if (plotValue == 0x19f && bossSequence > 0){
-                if (health <= 150 && bossSequence == 3){
-                  //Super Dimentio
-              bossSequence -= 1;
-              damage = 0;
-              flags = 0x4;
-              marioTakeDamage(position, flags, damage);
-              spm::pausewin::pausewinPauseGame();
-              spm::spmario::spmarioSystemLevel(1);
-              for (int i = 0; i < 33; i++) {
-            if (spm::item_event_data::itemEventDataTable[i].itemId == 68) {
-            spm::evtmgr::evtEntryType(shootingStar, 0, 0, 0);
-          }}} else if (health <= 100 && bossSequence == 2){
-        bossSequence -= 1;
-        damage = 0;
-        flags = 0x4;
-        marioTakeDamage(position, flags, damage);
-        spm::pausewin::pausewinPauseGame();
-        spm::spmario::spmarioSystemLevel(1);
-        for (int i = 0; i < 33; i++) {
-      if (spm::item_event_data::itemEventDataTable[i].itemId == 68) {
-      spm::evtmgr::evtEntryType(fireBurst, 0, 0, 0);
-    }}} else if (health <= 50 && bossSequence == 1){
-    bossSequence -= 1;
-    damage = 0;
-    flags = 0x4;
-    marioTakeDamage(position, flags, damage);
-    spm::pausewin::pausewinPauseGame();
-    spm::spmario::spmarioSystemLevel(1);
-    for (int i = 0; i < 33; i++) {
-    if (spm::item_event_data::itemEventDataTable[i].itemId == 68) {
-    spm::evtmgr::evtEntryType(shootingStar, 0, 0, 0);
-    }}} else {
-      marioTakeDamage(position, flags, damage * 2);
-    }
-        }
-            else {
-              marioTakeDamage(position, flags, damage * 2);
-            }
-            }
-        );
-  marioCalcDamageToEnemy = patch::hookFunction(spm::mario::marioCalcDamageToEnemy,
-    [](s32 damageType, s32 tribeId)
-            {
-              //spm::npcdrv::NPCWork * NPCWork = spm::npcdrv::npcGetWorkPtr();
-              wii::os::OSReport("tribe %d\n", tribeId);
-              wii::os::OSReport("damage %d\n", damageType);
-              if (damageType == 8 && tribeId == 381) return 0;
-              if (damageType == 8 && tribeId == 386) return 0;
-              if (damageType == 8 && tribeId == 396) return 0;
-              /*if (damageType == 1) {
-                spm::setup_data::MiscSetupDataV6 miscSetupData;
-                s32 test1 = 0x80a7cfc0;
-                s32 test2 = 0x33c00000;
-                miscSetupData.instanceId = 0;
-                miscSetupData.gravityRotation = 0;
-                for (int i = 0; i < 16; i++) {
-                  miscSetupData.unitWork[i] = 0;
-                }
-                wii::mtx::Vec3 pos = marioWork->position;
-                spm::npcdrv::NPCEntry * voidEntry = spm::npcdrv::npcEntryFromSetupEnemy(0, &pos, 198, &miscSetupData);
-                voidEntry->partsList = spm::npcdrv::npcTribes[307].partsList;
-              }*/
-              int damage = 0;
-              if (damageType == 20) return 2; //Shell Shock Damage Nerf
-              switch(tribeId) {
-                case 211:
-                damage = 1;
-                break;
-                case 214:
-                damage = 1;
-                break;
-                case 217:
-                damage = 1;
-                break;
-                case 270:
-                damage = 100;
-                break;
-                case 272:
-                damage = 1;
-                break;
-                case 273:
-                damage = 1;
-                if (spm::mario::marioGetPtr()->miscFlags & 0x4000) {return 0;}
-                //if (damageType == 8) {return 1;}
-                break;
-                case 282:
-                damage = 1;
-                break;
-                case 286:
-                damage = 1;
-                break;
-                case 289:
-                damage = 1;
-                break;
-                case 292:
-                return 1;
-                break;
-                case 295:
-                damage = 1;
-                break;
-                case 305:
-                damage = 1;
-                break;
-                case 306:
-                return 0;
-                break;
-                case 309:
-                /*if (damageType == 1) {
-                  for (int i = 0; i < 535; i++) {
-                    if (NPCWork->entries[i].tribeId == 309) {
-                      NPCWork->entries[i].hp = NPCWork->entries[i].hp - 1;
-                    }
-                  }
-                  damage = 1;
-                } else {return 1;}*/
-                break;
-                case 316:
-                damage = 3;
-                break;
-                case 318:
-                damage = 1;
-                break;
-                case 319:
-                damage = 2;
-                break;
-                case 330:
-                damage = 1;
-                break;
-                case 331:
-                damage = 1;
-                break;
-                case 332:
-                damage = 1;
-                break;
-                case 333:
-                damage = 5;
-                break;
-                case 532:
-                damage = 1;
-                break;
-              }
-              if (damageType == 0xf) {
-                if (damage == 0) {
-                  damage = marioCalcDamageToEnemy(0, tribeId) + 2;
-                }
-                if (damage > 0) {
-                  damage = damage + 1;
-                }
-              }
-              if (damage > 0) return damage;
-              if (tribeId > -1){
-              if (spm::npcdrv::npcTribes[tribeId].catchCardItemId != 0){
-              int cards = spm::mario_pouch::pouchGetCardCount(spm::npcdrv::npcTribes[tribeId].catchCardItemId);
-              cards = cards + 1;
-              return marioCalcDamageToEnemy(damageType, tribeId) / cards;
-            }
-          }
-          return marioCalcDamageToEnemy(damageType, tribeId);
-            }
-        );
-}
 
 static void patchBarry()
 {
@@ -1200,10 +957,6 @@ void patchStandardDeathScript(){
 
 EVT_BEGIN(changeFlyingSpeedBleck)
   USER_FUNC(spm::evt_npc::evt_npc_glide_to, PTR("me"), LW(5), LW(6), LW(7), 0, FLOAT(180.0), 0, 11, 0, 0)
-RETURN_FROM_CALL()
-
-EVT_BEGIN(changeFlyingSpeed)
-  USER_FUNC(spm::evt_npc::evt_npc_glide_to, PTR("me"), LW(5), LW(6), LW(7), 0, FLOAT(800.0), 0, 5, 0, 0)
 RETURN_FROM_CALL()
 
 EVT_BEGIN(changeBoxAttack)
@@ -1365,132 +1118,7 @@ EVT_BEGIN(changeBowserScript)
   END_IF()
 RETURN_FROM_CALL()
 
-EVT_BEGIN(shadooFight)
-DO(0)
-    USER_FUNC(spm::evt_npc::evt_npc_get_active_count, LW(0))
-    IF_EQUAL(LW(0), 0)
-        DO_BREAK()
-    END_IF()
-    USER_FUNC(spm::evt_npc::evt_npc_get_position, LW(10), LW(11), LW(12), LW(13))
-    WAIT_FRM(1)
-WHILE()
-USER_FUNC(spm::evt_mario::evt_mario_key_off, 0)
-USER_FUNC(spm::evt_npc::evt_npc_tribe_agb_async, 183)
-USER_FUNC(spm::evt_npc::evt_npc_entry_from_template, 0, 183, 0, -100, 0, LW(10), EVT_NULLPTR)
-USER_FUNC(spm::evt_npc::evt_npc_set_anim, LW(10), 0, 1)
-USER_FUNC(spm::evt_npc::func_80107c38, LW(10), 0)
-USER_FUNC(spm::evt_npc::evt_npc_flag8_onoff, LW(10), 0, 8)
-USER_FUNC(spm::evt_npc::evt_npc_flag8_onoff, LW(10), 1, 65536)
-USER_FUNC(spm::evt_npc::evt_npc_flip_to, LW(10), 1)
-USER_FUNC(spm::evt_npc::evt_npc_finish_flip_instant, LW(10))
-IF_SMALL(LW(11), -480)
-    SET(LW(11), -480)
-END_IF()
-IF_LARGE(LW(11), 480)
-    SET(LW(11), 480)
-END_IF()
-IF_SMALL(LW(12), 0)
-    SET(LW(12), 0)
-END_IF()
-IF_SMALL(LW(13), -140)
-    SET(LW(13), -140)
-END_IF()
-IF_LARGE(LW(13), 140)
-    SET(LW(13), 140)
-END_IF()
-USER_FUNC(spm::evt_npc::evt_npc_set_position, LW(10), LW(11), LW(12), LW(13))
-USER_FUNC(spm::evt_npc::func_800ff8f8, LW(10), LW(11), LW(12), LW(13))
-USER_FUNC(spm::evt_snd::evt_snd_sfxon_npc, PTR("SFX_EVT_100_PC_LINE_DRAW1"), LW(10))
-USER_FUNC(spm::evt_snd::evt_snd_sfxon_npc, PTR("SFX_EVT_100_PC_LINE_TURN1"), LW(10))
-USER_FUNC(spm::evt_npc::evt_npc_flip, LW(10))
-USER_FUNC(spm::evt_npc::evt_npc_wait_flip_finished, LW(10))
-USER_FUNC(spm::evt_npc::evt_npc_flag8_onoff, LW(10), 1, 8)
-USER_FUNC(spm::evt_npc::evt_npc_restart_evt_id, LW(10))
-USER_FUNC(spm::evt_npc::evt_npc_set_unitwork, LW(10), 10, 0)
-USER_FUNC(spm::evt_mario::evt_mario_key_on)
-DO(0)
-    USER_FUNC(spm::evt_npc::evt_npc_get_active_count, LW(0))
-    IF_EQUAL(LW(0), 0)
-        DO_BREAK()
-    END_IF()
-    USER_FUNC(spm::evt_npc::evt_npc_get_position, LW(10), LW(11), LW(12), LW(13))
-    WAIT_FRM(1)
-WHILE()
-USER_FUNC(spm::evt_mario::evt_mario_key_off, 0)
-USER_FUNC(spm::evt_npc::evt_npc_tribe_agb_async, 187)
-USER_FUNC(spm::evt_npc::evt_npc_entry_from_template, 0, 187, 0, -100, 0, LW(10), EVT_NULLPTR)
-USER_FUNC(spm::evt_npc::evt_npc_set_anim, LW(10), 0, 1)
-USER_FUNC(spm::evt_npc::func_80107c38, LW(10), 0)
-USER_FUNC(spm::evt_npc::evt_npc_flag8_onoff, LW(10), 0, 8)
-USER_FUNC(spm::evt_npc::evt_npc_flag8_onoff, LW(10), 1, 65536)
-USER_FUNC(spm::evt_npc::evt_npc_flip_to, LW(10), 1)
-USER_FUNC(spm::evt_npc::evt_npc_finish_flip_instant, LW(10))
-IF_SMALL(LW(11), -480)
-    SET(LW(11), -480)
-END_IF()
-IF_LARGE(LW(11), 480)
-    SET(LW(11), 480)
-END_IF()
-IF_SMALL(LW(12), 0)
-    SET(LW(12), 0)
-END_IF()
-IF_SMALL(LW(13), -140)
-    SET(LW(13), -140)
-END_IF()
-IF_LARGE(LW(13), 140)
-    SET(LW(13), 140)
-END_IF()
-USER_FUNC(spm::evt_npc::evt_npc_set_position, LW(10), LW(11), LW(12), LW(13))
-USER_FUNC(spm::evt_npc::func_800ff8f8, LW(10), LW(11), LW(12), LW(13))
-USER_FUNC(spm::evt_snd::evt_snd_sfxon_npc, PTR("SFX_EVT_100_PC_LINE_DRAW1"), LW(10))
-USER_FUNC(spm::evt_snd::evt_snd_sfxon_npc, PTR("SFX_EVT_100_PC_LINE_TURN1"), LW(10))
-USER_FUNC(spm::evt_npc::evt_npc_flip, LW(10))
-USER_FUNC(spm::evt_npc::evt_npc_wait_flip_finished, LW(10))
-USER_FUNC(spm::evt_npc::evt_npc_flag8_onoff, LW(10), 1, 8)
-USER_FUNC(spm::evt_npc::evt_npc_restart_evt_id, LW(10))
-USER_FUNC(spm::evt_npc::evt_npc_set_unitwork, LW(10), 10, 0)
-USER_FUNC(spm::evt_mario::evt_mario_key_on)
-DO(0)
-    USER_FUNC(spm::evt_npc::evt_npc_get_active_count, LW(0))
-    IF_EQUAL(LW(0), 0)
-        DO_BREAK()
-    END_IF()
-    USER_FUNC(spm::evt_npc::evt_npc_get_position, LW(10), LW(11), LW(12), LW(13))
-    WAIT_FRM(1)
-WHILE()
-USER_FUNC(spm::evt_mario::evt_mario_key_off, 0)
-USER_FUNC(spm::evt_npc::evt_npc_tribe_agb_async, 226)
-USER_FUNC(spm::evt_npc::evt_npc_entry_from_template, 0, 226, 0, -100, 0, LW(10), EVT_NULLPTR)
-USER_FUNC(spm::evt_npc::evt_npc_set_anim, LW(10), 0, 1)
-USER_FUNC(spm::evt_npc::func_80107c38, LW(10), 0)
-USER_FUNC(spm::evt_npc::evt_npc_flag8_onoff, LW(10), 0, 8)
-USER_FUNC(spm::evt_npc::evt_npc_flag8_onoff, LW(10), 1, 65536)
-USER_FUNC(spm::evt_npc::evt_npc_flip_to, LW(10), 1)
-USER_FUNC(spm::evt_npc::evt_npc_finish_flip_instant, LW(10))
-IF_SMALL(LW(11), -480)
-    SET(LW(11), -480)
-END_IF()
-IF_LARGE(LW(11), 480)
-    SET(LW(11), 480)
-END_IF()
-IF_SMALL(LW(12), 0)
-    SET(LW(12), 0)
-END_IF()
-IF_SMALL(LW(13), -140)
-    SET(LW(13), -140)
-END_IF()
-IF_LARGE(LW(13), 140)
-    SET(LW(13), 140)
-END_IF()
-USER_FUNC(spm::evt_npc::evt_npc_set_position, LW(10), LW(11), LW(12), LW(13))
-USER_FUNC(spm::evt_npc::func_800ff8f8, LW(10), LW(11), LW(12), LW(13))
-USER_FUNC(spm::evt_snd::evt_snd_sfxon_npc, PTR("SFX_EVT_100_PC_LINE_DRAW1"), LW(10))
-USER_FUNC(spm::evt_snd::evt_snd_sfxon_npc, PTR("SFX_EVT_100_PC_LINE_TURN1"), LW(10))
-USER_FUNC(spm::evt_npc::evt_npc_flip, LW(10))
-USER_FUNC(spm::evt_npc::evt_npc_wait_flip_finished, LW(10))
-USER_FUNC(spm::evt_npc::evt_npc_flag8_onoff, LW(10), 1, 8)
-USER_FUNC(spm::evt_npc::evt_npc_restart_evt_id, LW(10))
-RETURN_FROM_CALL()
+
 
 const char * dimentio_stg5_1 = "<p>\n"
 "Ah ha ha ha, I'm surprised you\n"
@@ -1615,51 +1243,12 @@ EVT_BEGIN(checkForDimentio) //If stone tablet is active during dimentio fight it
   END_IF()
 RETURN_FROM_CALL()
 
-EVT_BEGIN(returnChunksDeathScript)
-  USER_FUNC(grabChonkyFarts, LW(10))
-EVT_END()
-
-EVT_BEGIN(hookChunksDeathScript)
-  USER_FUNC(returnChonkyFarts, LW(10))
-  DELETE_EVT(LW(10))
-RETURN_FROM_CALL()
-
-EVT_BEGIN(mariounk3)
-  SET(LW(1), 50)
-RETURN_FROM_CALL()
-
-void hookShadooScripts()
-{
-  evtpatch::hookEvtReplaceBlock(spm::dan::dan_shadoo_fight_evt, 42, (spm::evtmgr::EvtScriptCode*)shadooFight, 79);
-  evtpatch::hookEvt(spm::npcdrv::npcEnemyTemplates[183].onSpawnScript, 85, (spm::evtmgr::EvtScriptCode*)returnChunksDeathScript);
-  evtpatch::hookEvt(spm::npcdrv::npcEnemyTemplates[183].unkScript6, 1, (spm::evtmgr::EvtScriptCode*)hookChunksDeathScript); //Fix for if O'Chunks is killed outside of boss rooms
-  evtpatch::hookEvt(spm::npcdrv::npcEnemyTemplates[422].unkScript3, 71, (spm::evtmgr::EvtScriptCode*)mariounk3);
-}
-
 void hookBowserScripts()
 {
   //spm::evtmgr::EvtScriptCode* bowserOnSpawn = spm::npcdrv::npcEnemyTemplates[285].onSpawnScript;
   spm::evtmgr::EvtScriptCode* mainLogic = spm::npcdrv::npcEnemyTemplates[285].unkScript7;
   evtpatch::hookEvt(mainLogic, 37, (spm::evtmgr::EvtScriptCode*)changeBowserScript);
   evtpatch::hookEvt(mainLogic, 172, (spm::evtmgr::EvtScriptCode*)makeBowserJump);
-}
-
-void hookDimentioScripts()
-{
-  spm::evtmgr::EvtScriptCode* dimentioOnSpawn = spm::npcdrv::npcEnemyTemplates[142].onSpawnScript;
-  wii::os::OSReport("%p\n", dimentioOnSpawn);
-  spm::evtmgr::EvtScriptCode* part1 = getInstructionEvtArg(dimentioOnSpawn, 4, 3);
-  spm::evtmgr::EvtScriptCode* part2 = getInstructionEvtArg(part1, 7, 0);
-  spm::evtmgr::EvtScriptCode* dimentioBattleLink = getInstructionEvtArg(part2, 3, 0);
-  evtpatch::hookEvtReplace(dimentioBattleLink, 6, (spm::evtmgr::EvtScriptCode*)changeFlyingSpeed);
-  spm::evtmgr::EvtScriptCode* mainLogic = getInstructionEvtArg(dimentioOnSpawn, 5, 3);
-  spm::evtmgr::EvtScriptCode* shootScript = getInstructionEvtArg(mainLogic, 54, 0);
-  spm::evtmgr::EvtScriptCode* boxScript = getInstructionEvtArg(mainLogic, 65, 0);
-  //evtpatch::hookEvtReplace(boxScript, 17, (spm::evtmgr::EvtScriptCode*)turnNull);
-  evtpatch::hookEvtReplace(shootScript, 32, (spm::evtmgr::EvtScriptCode*)turnNull);
-  spm::map_data::MapData * ls3_12_md = spm::map_data::mapDataPtr("ls3_12");
-  spm::evtmgr::EvtScriptCode* postChase = getInstructionEvtArg(ls3_12_md->initScript, 77, 0);
-  evtpatch::hookEvt(postChase, 26, (spm::evtmgr::EvtScriptCode*)runSaveScript);
 }
 
 void hookLs4_11()
@@ -2280,14 +1869,14 @@ void main() {
   standard_death_script = getStandardDeathScript();
   setBossHP();
   setBossDef();
-  patchMarioDamage();
+  marioDamageMain();
   patchItems();
   patchCooking();
   reduceXpGained();
   patchVariables();
   evtpatch::evtmgrExtensionInit(); // Initialize EVT scripting extension
   hookBowserScripts();
-  hookDimentioScripts();
+  e_dmenMain();
   hookSuperDimentioScripts();
   hookBleckScripts();
   hookMimiScripts();
@@ -2299,7 +1888,7 @@ void main() {
   kingSammerMain();
   patchStandardDeathScript();
   hookSammerScripts();
-  //hookShadooScripts();
+  //shadooMain();
   #ifdef SPM_EU0
   wii::tpl::TPLHeader *myTplHeader = nullptr;
   patchTpl(116, 0, (wii::tpl::TPLHeader *)spm::icondrv::icondrv_wp->wiconTpl->sp->data, myTplHeader, "./a/n_mg_flower-", true);
