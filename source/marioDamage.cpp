@@ -39,6 +39,7 @@
 #include <spm/evt_npc.h>
 #include <spm/npc_ninja.h>
 #include <spm/evtmgr_cmd.h>
+#include <msl/string.h>
 #include <wii/os.h>
 
 namespace mod {
@@ -63,124 +64,125 @@ static void patchMarioDamage(){
   npcDamageMario = patch::hookFunction(spm::npcdrv::npcDamageMario, new_npcDamageMario);
 
   marioTakeDamage = patch::hookFunction(spm::mario::marioTakeDamage,
-    [](wii::mtx::Vec3 * position, u32 flags, s32 damage)
-            {
-              if (marioWork->character == 2) {
-                damage = damage - 1;
-                if (damage <= 0) {
-                  damage = 1;
-                }
-              }
-              //adds the rpg elements to boss fights
-              int health = checkBossHealth();
-              s32 plotValue = globals->gsw0;
-              if (plotValue == 0x67 && *_bossSequence > 0){
-                if (health > 0 && health <= 3 && *_bossSequence == 1){
-                  //Bowser
-              *_bossSequence -= 1;
-              damage = 0;
-              flags = 0x4;
-              marioTakeDamage(position, flags, damage);
-              spm::pausewin::pausewinPauseGame();
-              spm::spmario::spmarioSystemLevel(1);
-              for (int i = 0; i < 33; i++) {
-            if (spm::item_event_data::itemEventDataTable[i].itemId == 68) {
-            spm::evtmgr::evtEntryType(iceStorm, 0, 0, 0);
-          }}} else {
-            marioTakeDamage(position, flags, damage * 2);
-          }} else if (plotValue == 0xd5 && *_bossSequence > 0){
-            if (health <= 10 && *_bossSequence == 1 && health >= 1){
-              //O'Cabbage
-          *_bossSequence -= 1;
+    [](wii::mtx::Vec3 * position, u32 flags, s32 damage) {
+      if (marioWork -> character == 2) {
+        damage = damage - 1;
+        if (damage <= 0) {
+          damage = 1;
+        }
+      }
+      //adds the rpg elements to boss fights
+      int health = checkBossHealth();
+      s32 plotValue = globals -> gsw0;
+      if (plotValue == 0x67 && * _bossSequence > 0) {
+        if (health > 0 && health <= 3 && * _bossSequence == 1) {
+          //Bowser
+          * _bossSequence -= 1;
           damage = 0;
           flags = 0x4;
           marioTakeDamage(position, flags, damage);
           spm::pausewin::pausewinPauseGame();
           spm::spmario::spmarioSystemLevel(1);
           for (int i = 0; i < 33; i++) {
-        if (spm::item_event_data::itemEventDataTable[i].itemId == 68) {
-        spm::evtmgr::evtEntryType(fireBurst, 0, 0, 0);
-      }}} else {
-        marioTakeDamage(position, flags, damage * 2);
-      }} else if (plotValue == 0xd5 && *_bossSequence > 0){
-        if (health <= 6 && *_bossSequence == 1){
-          //King Croacus
-      *_bossSequence -= 1;
-      damage = 0;
-      flags = 0x4;
-      marioTakeDamage(position, flags, damage);
-      spm::pausewin::pausewinPauseGame();
-      spm::spmario::spmarioSystemLevel(1);
-      for (int i = 0; i < 33; i++) {
-    if (spm::item_event_data::itemEventDataTable[i].itemId == 68) {
-    spm::evtmgr::evtEntryType(fireBurst, 0, 0, 0);
-  }}} else {
-    marioTakeDamage(position, flags, damage * 2);
-  }} else if (plotValue == 0x19f && *_bossSequence > 0){
-                if (health <= 150 && *_bossSequence == 3){
-                  //Super Dimentio
-              *_bossSequence -= 1;
-              damage = 0;
-              flags = 0x4;
-              marioTakeDamage(position, flags, damage);
-              spm::pausewin::pausewinPauseGame();
-              spm::spmario::spmarioSystemLevel(1);
-              for (int i = 0; i < 33; i++) {
             if (spm::item_event_data::itemEventDataTable[i].itemId == 68) {
-            spm::evtmgr::evtEntryType(shootingStar, 0, 0, 0);
-          }}} else if (health <= 100 && *_bossSequence == 2){
-        *_bossSequence -= 1;
-        damage = 0;
-        flags = 0x4;
-        marioTakeDamage(position, flags, damage);
-        spm::pausewin::pausewinPauseGame();
-        spm::spmario::spmarioSystemLevel(1);
-        for (int i = 0; i < 33; i++) {
-      if (spm::item_event_data::itemEventDataTable[i].itemId == 68) {
-      spm::evtmgr::evtEntryType(fireBurst, 0, 0, 0);
-    }}} else if (health <= 50 && *_bossSequence == 1){
-    *_bossSequence -= 1;
-    damage = 0;
-    flags = 0x4;
-    marioTakeDamage(position, flags, damage);
-    spm::pausewin::pausewinPauseGame();
-    spm::spmario::spmarioSystemLevel(1);
-    for (int i = 0; i < 33; i++) {
-    if (spm::item_event_data::itemEventDataTable[i].itemId == 68) {
-    spm::evtmgr::evtEntryType(shootingStar, 0, 0, 0);
-    }}} else {
-      marioTakeDamage(position, flags, damage * 2);
-    }
+              spm::evtmgr::evtEntryType(iceStorm, 0, 0, 0);
+            }
+          }
+        } else {
+          marioTakeDamage(position, flags, damage * 2);
         }
-            else {
-              marioTakeDamage(position, flags, damage * 2);
+      } else if (plotValue == 0xd5 && * _bossSequence > 0) {
+        if (health <= 10 && * _bossSequence == 1 && health >= 1) {
+          //O'Cabbage
+          * _bossSequence -= 1;
+          damage = 0;
+          flags = 0x4;
+          marioTakeDamage(position, flags, damage);
+          spm::pausewin::pausewinPauseGame();
+          spm::spmario::spmarioSystemLevel(1);
+          for (int i = 0; i < 33; i++) {
+            if (spm::item_event_data::itemEventDataTable[i].itemId == 68) {
+              spm::evtmgr::evtEntryType(fireBurst, 0, 0, 0);
             }
+          }
+        } else {
+          marioTakeDamage(position, flags, damage * 2);
+        }
+      } else if (plotValue == 0xd5 && * _bossSequence > 0) {
+        if (health <= 6 && * _bossSequence == 1) {
+          //King Croacus
+          * _bossSequence -= 1;
+          damage = 0;
+          flags = 0x4;
+          marioTakeDamage(position, flags, damage);
+          spm::pausewin::pausewinPauseGame();
+          spm::spmario::spmarioSystemLevel(1);
+          for (int i = 0; i < 33; i++) {
+            if (spm::item_event_data::itemEventDataTable[i].itemId == 68) {
+              spm::evtmgr::evtEntryType(fireBurst, 0, 0, 0);
             }
-        );
+          }
+        } else {
+          marioTakeDamage(position, flags, damage * 2);
+        }
+      } else if (plotValue == 0x19f && * _bossSequence > 0) {
+        if (health <= 150 && * _bossSequence == 3) {
+          //Super Dimentio
+          * _bossSequence -= 1;
+          damage = 0;
+          flags = 0x4;
+          marioTakeDamage(position, flags, damage);
+          spm::pausewin::pausewinPauseGame();
+          spm::spmario::spmarioSystemLevel(1);
+          for (int i = 0; i < 33; i++) {
+            if (spm::item_event_data::itemEventDataTable[i].itemId == 68) {
+              spm::evtmgr::evtEntryType(shootingStar, 0, 0, 0);
+            }
+          }
+        } else if (health <= 100 && * _bossSequence == 2) {
+          * _bossSequence -= 1;
+          damage = 0;
+          flags = 0x4;
+          marioTakeDamage(position, flags, damage);
+          spm::pausewin::pausewinPauseGame();
+          spm::spmario::spmarioSystemLevel(1);
+          for (int i = 0; i < 33; i++) {
+            if (spm::item_event_data::itemEventDataTable[i].itemId == 68) {
+              spm::evtmgr::evtEntryType(fireBurst, 0, 0, 0);
+            }
+          }
+        } else if (health <= 50 && * _bossSequence == 1) {
+          * _bossSequence -= 1;
+          damage = 0;
+          flags = 0x4;
+          marioTakeDamage(position, flags, damage);
+          spm::pausewin::pausewinPauseGame();
+          spm::spmario::spmarioSystemLevel(1);
+          for (int i = 0; i < 33; i++) {
+            if (spm::item_event_data::itemEventDataTable[i].itemId == 68) {
+              spm::evtmgr::evtEntryType(shootingStar, 0, 0, 0);
+            }
+          }
+        } else {
+          marioTakeDamage(position, flags, damage * 2);
+        }
+      } else {
+        marioTakeDamage(position, flags, damage * 2);
+      }
+    }
+  );
+
   marioCalcDamageToEnemy = patch::hookFunction(spm::mario::marioCalcDamageToEnemy,
     [](s32 damageType, s32 tribeId)
             {
               //spm::npcdrv::NPCWork * NPCWork = spm::npcdrv::npcGetWorkPtr();
-              wii::os::OSReport("tribe %d\n", tribeId);
-              wii::os::OSReport("damage %d\n", damageType);
+              //wii::os::OSReport("tribe %d\n", tribeId);
+              wii::os::OSReport("damageType %d\n", damageType);
               if (damageType == 8 && tribeId == 381) return 0;
               if (damageType == 8 && tribeId == 386) return 0;
               if (damageType == 8 && tribeId == 396) return 0;
-              /*if (damageType == 1) {
-                spm::setup_data::MiscSetupDataV6 miscSetupData;
-                s32 test1 = 0x80a7cfc0;
-                s32 test2 = 0x33c00000;
-                miscSetupData.instanceId = 0;
-                miscSetupData.gravityRotation = 0;
-                for (int i = 0; i < 16; i++) {
-                  miscSetupData.unitWork[i] = 0;
-                }
-                wii::mtx::Vec3 pos = marioWork->position;
-                spm::npcdrv::NPCEntry * voidEntry = spm::npcdrv::npcEntryFromSetupEnemy(0, &pos, 198, &miscSetupData);
-                voidEntry->partsList = spm::npcdrv::npcTribes[307].partsList;
-              }*/
-              int damage = 0;
               if (damageType == 20) return 2; //Shell Shock Damage Nerf
+              int damage = 0;
               switch(tribeId) {
                 case 211:
                 damage = 1;
@@ -264,6 +266,34 @@ static void patchMarioDamage(){
                 }
                 if (damage > 0) {
                   damage = damage + 1;
+                }
+              }
+              const char* mapName = spm::spmario::gp->mapName;
+              char *comparison = "dan";
+              char *result = msl::string::strstr(mapName, comparison);
+
+              // pit only behavior
+              if (result != 0)
+              {
+                wii::os::OSReport("dan running %d\n", damageType);
+                if (damage == 0)
+                {
+                  int cards = spm::mario_pouch::pouchGetCardCount(spm::npcdrv::npcTribes[tribeId].catchCardItemId);
+                  cards = cards + 1;
+                  damage = marioCalcDamageToEnemy(damageType, tribeId) / cards;
+                }
+                switch (damageType)
+                {
+                  case 1:
+                  damage += spm::spmario::gp->gsw[1700] * 2;
+                  wii::os::OSReport("dan cudging %d\n", damage);
+                  break;
+                  case 19:
+                  damage += spm::spmario::gp->gsw[1701] * 2;
+                  break;
+                  case 15:
+                  damage += spm::spmario::gp->gsw[1702] * 2;
+                  break;
                 }
               }
               if (damage > 0) return damage;

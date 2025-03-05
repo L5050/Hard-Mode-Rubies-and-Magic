@@ -11,6 +11,7 @@
 #include "e_dmen.h"
 #include "marioDamage.h"
 #include "patchNinja.h"
+#include "patch_dan.h"
 #include "king_sammer.h"
 #include "stdlib.h"
 
@@ -971,7 +972,7 @@ RETURN_FROM_CALL()
 EVT_BEGIN(changeSlowdown)
   USER_FUNC(spm::evt_npc::evt_npc_set_unitwork, PTR("me"), 10, 0)
   USER_FUNC(spm::evt_npc::evt_npc_get_hp, PTR("me"), LW(0))
-  IF_LARGE(LW(0), 20)
+  IF_LARGE(LW(0), 5)
     ADD(LW(0), 1)
     USER_FUNC(spm::evt_npc::evt_npc_set_hp, PTR("me"), LW(0))
     USER_FUNC(spm::evt_npc::evt_npc_set_unitwork, PTR("me"), 10, 0)
@@ -1888,6 +1889,7 @@ void main() {
   kingSammerMain();
   patchStandardDeathScript();
   hookSammerScripts();
+  patch_dan::patch_dan_main();
   //shadooMain();
   #ifdef SPM_EU0
   wii::tpl::TPLHeader *myTplHeader = nullptr;
