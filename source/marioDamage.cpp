@@ -49,6 +49,7 @@ s32 (*npcDamageMario)(spm::npcdrv::NPCEntry *npcEntry, spm::npcdrv::NPCPart *par
 int (*marioCalcDamageToEnemy)(s32 damageType, s32 tribeId);
 
 s32 new_npcDamageMario(spm::npcdrv::NPCEntry *npcEntry, spm::npcdrv::NPCPart *part, wii::mtx::Vec3 *position, u32 param_4, s32 damage, u32 flags) {
+  if (npcEntry == nullptr) return npcDamageMario(npcEntry, part, position, param_4, damage, flags);
       if (npcEntry->tribeId == 284) {
         if (npcEntry->unitWork[0] == 3) {
           return npcDamageMario(npcEntry, part, position, param_4, damage, 1);
@@ -177,11 +178,11 @@ static void patchMarioDamage(){
             {
               //spm::npcdrv::NPCWork * NPCWork = spm::npcdrv::npcGetWorkPtr();
               //wii::os::OSReport("tribe %d\n", tribeId);
-              wii::os::OSReport("damageType %d\n", damageType);
+              wii::os::OSReport("damageType %d, tribeId %d\n", tribeId);
               if (damageType == 8 && tribeId == 381) return 0;
               if (damageType == 8 && tribeId == 386) return 0;
               if (damageType == 8 && tribeId == 396) return 0;
-              if (damageType == 20) return 2; //Shell Shock Damage Nerf
+              if (damageType == 20 && tribeId > 0) return 2; //Shell Shock Damage Nerf
               int damage = 0;
               switch(tribeId) {
                 case 211:
@@ -203,9 +204,6 @@ static void patchMarioDamage(){
                 damage = 1;
                 if (spm::mario::marioGetPtr()->miscFlags & 0x4000) {return 0;}
                 //if (damageType == 8) {return 1;}
-                break;
-                case 282:
-                damage = 1;
                 break;
                 case 286:
                 damage = 1;
@@ -278,22 +276,50 @@ static void patchMarioDamage(){
                 wii::os::OSReport("dan running %d\n", damageType);
                 if (damage == 0)
                 {
+                  if (tribeId > 0)  {
                   int cards = spm::mario_pouch::pouchGetCardCount(spm::npcdrv::npcTribes[tribeId].catchCardItemId);
                   cards = cards + 1;
                   damage = marioCalcDamageToEnemy(damageType, tribeId) / cards;
-                }
-                switch (damageType)
-                {
-                  case 1:
-                  damage += spm::spmario::gp->gsw[1700] * 2;
-                  wii::os::OSReport("dan cudging %d\n", damage);
-                  break;
-                  case 19:
-                  damage += spm::spmario::gp->gsw[1701] * 2;
-                  break;
-                  case 15:
-                  damage += spm::spmario::gp->gsw[1702] * 2;
-                  break;
+                  }
+                  switch (damageType)
+                  {
+                    case 1:
+                    damage += spm::spmario::gp->gsw[1700] * 2;
+                    break;
+                    case 19:
+                    damage += spm::spmario::gp->gsw[1701] * 2;
+                    break;
+                    case 15:
+                    damage += spm::spmario::gp->gsw[1702] * 2;
+                    break;
+                    case 8:
+                    damage += spm::spmario::gp->gsw[1703];
+                    break;
+                  }
+                } else {
+                  switch (damageType)
+                  {
+                    case 1:
+                    if (spm::spmario::gp->gsw[1700] > 0) {
+                    damage += 1;
+                    }
+                    break;
+                    case 19:
+                    if (spm::spmario::gp->gsw[1701] > 0) {
+                    damage += 1;
+                    }
+                    break;
+                    case 15:
+                    if (spm::spmario::gp->gsw[1702] > 0) {
+                    damage += 1;
+                    }
+                    break;
+                    case 8:
+                    if (spm::spmario::gp->gsw[1703] > 0) {
+                    damage += 1;
+                    }
+                    break;
+                  }
                 }
               }
               if (damage > 0) return damage;

@@ -35,6 +35,7 @@
 #include <spm/mario.h>
 #include <spm/evt_npc.h>
 #include <spm/npc_ninja.h>
+#include <spm/npc_dimeen_l.h>
 #include <spm/evtmgr_cmd.h>
 #include <wii/os.h>
 
@@ -52,6 +53,10 @@ EVT_BEGIN(runSaveScript)
   RUN_CHILD_EVT(evt_memcard_save)
 RETURN_FROM_CALL()
 
+EVT_BEGIN(makePeachDie)
+  USER_FUNC(spm::npc_dimeen_l::npc_dimeen_l_box_deal_damage, 0, 1, LW(3), LW(0), LW(1), LW(2))
+RETURN_FROM_CALL()
+
 static void hookDimentioScripts()
 {
   spm::evtmgr::EvtScriptCode* dimentioOnSpawn = spm::npcdrv::npcEnemyTemplates[142].onSpawnScript;
@@ -62,11 +67,13 @@ static void hookDimentioScripts()
   spm::evtmgr::EvtScriptCode* mainLogic = getInstructionEvtArg(dimentioOnSpawn, 5, 3);
   spm::evtmgr::EvtScriptCode* shootScript = getInstructionEvtArg(mainLogic, 54, 0);
   spm::evtmgr::EvtScriptCode* boxScript = getInstructionEvtArg(mainLogic, 65, 0);
-  //evtpatch::hookEvtReplace(boxScript, 17, (spm::evtmgr::EvtScriptCode*)turnNull);
+  spm::evtmgr::EvtScriptCode* boxScriptMain = getInstructionEvtArg(boxScript, 23, 0);
+  evtpatch::hookEvtReplace(boxScriptMain, 238, (spm::evtmgr::EvtScriptCode*)makePeachDie);
   evtpatch::hookEvtReplace(shootScript, 32, (spm::evtmgr::EvtScriptCode*)turnNull);
   spm::map_data::MapData * ls3_12_md = spm::map_data::mapDataPtr("ls3_12");
   spm::evtmgr::EvtScriptCode* postChase = getInstructionEvtArg(ls3_12_md->initScript, 77, 0);
   evtpatch::hookEvt(postChase, 26, (spm::evtmgr::EvtScriptCode*)runSaveScript);
+  writeWord(&spm::npc_dimeen_l::npc_dimeen_l_box_deal_damage, 0x88, 0x38600000);
 }
 
 void e_dmenMain() {

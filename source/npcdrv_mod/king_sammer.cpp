@@ -96,15 +96,16 @@ static NPCTribeAnimDef tonoAnims[] = {
   EVT_END()
 
   EVT_BEGIN(tono_check_for_fall)
-    LBL(0)
-    USER_FUNC(evt_npc_get_position, PTR("me"), LW(0), LW(1), LW(2))
-    IF_SMALL(LW(1), FLOAT(-10.0))
-      USER_FUNC(spm::evt_snd::evt_snd_sfxon, PTR("SFX_F_BOMB_FIRE1"))
-      USER_FUNC(spm::evt_eff::evt_eff, 0, PTR("kemuri_test"), 0, LW(0), LW(1), LW(2), FLOAT(5.0), 0, 0, 0, 0, 0, 0, 0)
-      USER_FUNC(evt_npc_entry_from_template, 0, 32, 400, 75, 0, LW(10), EVT_NULLPTR)
-      USER_FUNC(evt_npc_delete, PTR("me"))
-      RETURN()
-    END_IF()
+  USER_FUNC(spm::evt_sub::evt_sub_get_mapname, 0, LW(11))
+  LBL(0)
+  USER_FUNC(evt_npc_get_position, PTR("me"), LW(0), LW(1), LW(2))
+  IF_SMALL(LW(1), FLOAT(-10.0))
+    USER_FUNC(spm::evt_snd::evt_snd_sfxon, PTR("SFX_F_BOMB_FIRE1"))
+    USER_FUNC(spm::evt_eff::evt_eff, 0, PTR("kemuri_test"), 0, LW(0), LW(1), LW(2), FLOAT(5.0), 0, 0, 0, 0, 0, 0, 0)
+    USER_FUNC(evt_npc_entry_from_template, 0, 32, 400, 75, 0, LW(10), EVT_NULLPTR)
+    USER_FUNC(evt_npc_delete, PTR("me"))
+    RETURN()
+  END_IF()
   WAIT_FRM(1)
   GOTO(0)
   EVT_END()
@@ -113,7 +114,10 @@ static NPCTribeAnimDef tonoAnims[] = {
     RUN_CHILD_EVT(npcEnemyTemplates[2].onSpawnScript)
     USER_FUNC(evt_npc_set_property, PTR("me"), 14, PTR(tonoAnims))
     USER_FUNC(spm::evt_npc::evt_npc_set_part_attack_power, PTR("me"), -1, 4)
-    RUN_EVT(tono_check_for_fall)
+    USER_FUNC(compareStrings, LW(11), PTR("wa"), LW(13))
+    IF_EQUAL(LW(13), 1)
+      RUN_EVT(tono_check_for_fall)
+    END_IF()
   RETURN()
   EVT_END()
 
@@ -386,6 +390,24 @@ EVT_BEGIN(tono_on_kill)
   RETURN()
 EVT_END()
 
+EVT_BEGIN(checkForDanSammer)
+USER_FUNC(spm::evt_sub::evt_sub_get_mapname, 0, LW(11))
+USER_FUNC(compareStrings, LW(11), PTR("dan"), LW(13))
+IF_EQUAL(LW(13), 1)
+  USER_FUNC(spm::evt_npc::evt_npc_get_position, PTR("me"), LW(0), LW(1), LW(2))
+  DO(10)
+    USER_FUNC(spm::evt_eff::evt_eff, 0, PTR("spm_explosion"), 0, LW(0), LW(1), LW(2), FLOAT(0.8), 0, 0, 0, 0, 0, 0, 0)
+    USER_FUNC(spm::evt_snd::evt_snd_sfxon, PTR("SFX_F_BOMB_FIRE1"))
+    WAIT_MSEC(200)
+  WHILE()
+  USER_FUNC(evt_npc_delete, PTR("me"))
+  RETURN()
+ELSE()
+  RUN_CHILD_EVT(tono_on_kill)
+END_IF()
+RETURN()
+EVT_END()
+
 static void createKingNpc() {
   def.type = 0x0;
   def.defense = 0x2;
@@ -403,7 +425,7 @@ static void createKingNpc() {
   npcEnemyTemplates[32].unkScript3 = sammerOnHit;
   npcEnemyTemplates[32].unkScript4 = npcEnemyTemplates[2].unkScript4;
   npcEnemyTemplates[32].unkScript5 = npcEnemyTemplates[2].unkScript5;
-  npcEnemyTemplates[32].unkScript6 = tono_on_kill;
+  npcEnemyTemplates[32].unkScript6 = checkForDanSammer;
   npcEnemyTemplates[32].unkScript7 = nullptr;
   npcEnemyTemplates[32].unkScript8 = nullptr;
   npcEnemyTemplates[32].unkScript9 = nullptr;
@@ -696,19 +718,19 @@ EVT_END()
 
 s32 check_for_ninja(evtmgr::EvtEntry * evtEntry, bool firstRun) {
   evtmgr::EvtVar *args = (evtmgr::EvtVar *)evtEntry->pCurData;
-  wii::os::OSReport("checking for a ninja...\n");
+  wii::os::OSReport("ninja check\n");
   for (int i = 0; i < 535; i++) {
     switch(NPCWork->entries[i].tribeId) {
       case 211:
       case 214:
       case 217:
-      wii::os::OSReport("Ninja found\n");
+      if (NPCWork->entries[i].flag8 & 0x80000000 != 0) {
       evtmgr_cmd::evtSetValue(evtEntry, args[0], 1);
       return 2;
+      }
       break;
     }
   }
-  wii::os::OSReport("Ninja not found\n");
   evtmgr_cmd::evtSetValue(evtEntry, args[0], 0);
   return 2;
 }

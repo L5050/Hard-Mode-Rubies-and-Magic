@@ -443,7 +443,8 @@ static void titleScreenCustomTextPatch()
     spm::seqdef::seq_data[spm::seqdrv::SEQ_TITLE].main = &seq_titleMainOverride;
     spm::seqdef::seq_data[spm::seqdrv::SEQ_GAME].main = &customUI;
 }
-static void setBossHP() {
+static void setBossHP()
+{
   spm::npcdrv::npcTribes[270].maxHp = 15; //O'Chunks 1
   spm::npcdrv::npcTribes[315].maxHp = 10; //Bowser 1
   spm::npcdrv::npcTribes[286].maxHp = 12; //Dimentio 1
@@ -454,7 +455,7 @@ static void setBossHP() {
   spm::npcdrv::npcTribes[272].maxHp = 20; //O'Cabbage
   //spm::npcdrv::npcTribes[319].maxHp = 20; //King Croacus
   spm::npcdrv::npcTribes[282].maxHp = 20; //Mimi
-  spm::npcdrv::npcTribes[300].maxHp = 255; //Brobot L-Type
+  spm::npcdrv::npcTribes[300].maxHp = 150; //Brobot L-Type
   spm::npcdrv::npcTribes[316].maxHp = 12; //Bowser 2
   spm::npcdrv::npcTribes[327].maxHp = 90; //Bonechill
   spm::npcdrv::npcTribes[273].maxHp = 30; //O'Chunks 3
@@ -514,7 +515,7 @@ static void setBossDef() {
       spm::npcdrv::npcTribes[271].partsList[i].defenses[5] = def;
      }
    }
-   //spm::npcdrv::npcTribes[282].partsList[0].defenses[0] = def;//mimi defense
+   spm::npcdrv::npcTribes[282].partsList[0].defenses[0] = def;  //mimi defense
    for (int i = 0; i < 15; i++) {//Brobot L-Type defense
       spm::npcdrv::npcTribes[300].partsList[i].defenses[0] = def;
    }
@@ -780,7 +781,6 @@ s32 displayBossHealth(spm::evtmgr::EvtEntry *evtEntry, bool firstRun)
   bossHealth = &npc->hp;
 }
 
-EVT_DECLARE_USER_FUNC(compareStrings, 3)
 EVT_DECLARE_USER_FUNC(itemCharm, 0)
 EVT_DECLARE_USER_FUNC(giveHampterCheese, 0)
 EVT_DECLARE_USER_FUNC(reduceEnemyRequirements, 0)
@@ -834,7 +834,17 @@ EVT_BEGIN(changeThunderDamage)
   END_IF()
 RETURN_FROM_CALL()
 
-void patchItems() {
+EVT_BEGIN(takeThatPiplup)
+  USER_FUNC(spm::evt_seq::evt_seq_set_seq, spm::seqdrv::SEQ_MAPCHANGE, PTR("mi3_03"), PTR("doa_l"))
+RETURN()
+EVT_END()
+
+EVT_BEGIN(takeThatPiplup2)
+  USER_FUNC(spm::evt_snd::evt_snd_bgmon_f_d, 0, PTR("BGM_MAP_STG2"), 1000)
+RETURN()
+EVT_END()
+
+static void patchItems() {
   spm::evtmgr::EvtScriptCode* mightyTonicUseScript = spm::item_event_data::getItemUseEvt(75);
   evtpatch::hookEvtReplace(mightyTonicUseScript, 17, (spm::evtmgr::EvtScriptCode*)charmAdd);
   spm::evtmgr::EvtScriptCode* default_item_script = spm::item_event_data::default_item_use_evt;
@@ -858,9 +868,13 @@ void patchItems() {
   evtpatch::hookEvt(thunderRage, 46, (spm::evtmgr::EvtScriptCode*)changeThunderDamage);
 }
 
-void patchCooking() {
+static void patchCooking() {
   spm::evtmgr::EvtScriptCode* cookScript = spm::evt_shop::saffronCookingScript;
-  evtpatch::hookEvtReplaceBlock(cookScript, 130, (spm::evtmgr::EvtScriptCode*)insertNop, 189);
+  //evtpatch::hookEvtReplaceBlock(cookScript, 130, (spm::evtmgr::EvtScriptCode*)insertNop, 189);
+  evtpatch::hookEvtReplace(cookScript, 1, (spm::evtmgr::EvtScriptCode*)takeThatPiplup);
+  spm::map_data::MapData * mi3_03_md = spm::map_data::mapDataPtr("mi3_03");
+  evtpatch::hookEvtReplace(mi3_03_md->initScript, 1, (spm::evtmgr::EvtScriptCode*)takeThatPiplup2);
+
 }
 
 
@@ -1062,9 +1076,11 @@ RETURN_FROM_CALL()
 EVT_BEGIN(mimi_death_script)
   USER_FUNC(spm::evt_npc::evt_npc_get_position, PTR("me"), LW(0), LW(1), LW(2))
   DO(10)
-    USER_FUNC(spm::evt_eff::evt_eff, 0, PTR("spm_explosion"), 0, LW(0), LW(1), LW(2), FLOAT(2.0), 0, 0, 0, 0, 0, 0, 0)
+    USER_FUNC(spm::evt_eff::evt_eff, 0, PTR("spm_explosion"), 0, LW(0), LW(1), LW(2), FLOAT(1.5), 0, 0, 0, 0, 0, 0, 0)
+    USER_FUNC(spm::evt_snd::evt_snd_sfxon, PTR("SFX_F_BOMB_FIRE1"))
     WAIT_MSEC(200)
   WHILE()
+  USER_FUNC(spm::evt_npc::evt_npc_set_unitwork, PTR("me"), 14, 1)
   USER_FUNC(spm::evt_npc::evt_npc_set_position, PTR("me"), -1000, -1000, -1000)
   USER_FUNC(spm::evt_npc::evt_npc_set_move_mode, PTR("me"), 0)
   RETURN()
@@ -1889,8 +1905,8 @@ void main() {
   kingSammerMain();
   patchStandardDeathScript();
   hookSammerScripts();
+  shadooMain();
   patch_dan::patch_dan_main();
-  //shadooMain();
   #ifdef SPM_EU0
   wii::tpl::TPLHeader *myTplHeader = nullptr;
   patchTpl(116, 0, (wii::tpl::TPLHeader *)spm::icondrv::icondrv_wp->wiconTpl->sp->data, myTplHeader, "./a/n_mg_flower-", true);

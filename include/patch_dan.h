@@ -8,6 +8,10 @@
 #include <wii/os.h>
 namespace mod::patch_dan {
 
+EVT_DECLARE(reset_piccolo)
+EVT_DECLARE_USER_FUNC(resetPiccolo, 0)
+
+void patch_wracktail_main();
 void patch_dan_main();
 
 }
