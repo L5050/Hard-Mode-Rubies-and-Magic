@@ -1384,19 +1384,17 @@ void hookChunkScripts()
 
   spm::evtmgr::EvtScriptCode* grabScript = getInstructionEvtArg(chonkyAttackScript, 182, 0);
   spm::evtmgr::EvtScriptCode* jumpScript = getInstructionEvtArg(chonkyAttackScript, 112, 0);
-  //evtpatch::hookEvtReplaceBlock(chonkyAttackScript, 105, (spm::evtmgr::EvtScriptCode*)turnNull, 127);
-  evtpatch::hookEvt(chonkyAttackScript, 98, (spm::evtmgr::EvtScriptCode*)oChunkSucks);
-  //evtpatch::hookEvtReplace(chonkyAttackScript, 148, (spm::evtmgr::EvtScriptCode*)oChunkSucks2);
+  evtpatch::patchEvtInstruction(chonkyAttackScript, 174, EVT_CAST(IF_LARGE_EQUAL(LW(1), FLOAT(900.0))));
   evtpatch::hookEvtReplace(chonkyAttackScript, 155, (spm::evtmgr::EvtScriptCode*)sillyFunChunks);
   evtpatch::hookEvtReplace(chonkyAttackScript, 144, (spm::evtmgr::EvtScriptCode*)oChunkSucks3);
+  evtpatch::hookEvt(chonkyAttackScript, 98, (spm::evtmgr::EvtScriptCode*)oChunkSucks);
+  evtpatch::hookEvtReplace(chonkyAttackScript, 16, (spm::evtmgr::EvtScriptCode*)turnNull);
+  evtpatch::hookEvtReplace(chonkyAttackScript, 15, (spm::evtmgr::EvtScriptCode*)turnNull);
   evtpatch::hookEvtReplace(fartAttack, 23, (spm::evtmgr::EvtScriptCode*)increaseFartSpeed);
 
-  evtpatch::hookEvtReplace(chonkyAttackScript, 15, (spm::evtmgr::EvtScriptCode*)turnNull);
-  evtpatch::hookEvtReplace(chonkyAttackScript, 16, (spm::evtmgr::EvtScriptCode*)turnNull);
   evtpatch::hookEvtReplace(fartAttack, 114, (spm::evtmgr::EvtScriptCode*)turnNull);
   evtpatch::hookEvtReplace(fartAttack, 116, (spm::evtmgr::EvtScriptCode*)turnNull);
   evtpatch::hookEvtReplace(fartAttack, 118, (spm::evtmgr::EvtScriptCode*)turnNull);
-  evtpatch::patchEvtInstruction(chonkyAttackScript, 174, EVT_CAST(IF_LARGE_EQUAL(LW(1), FLOAT(900.0))));
 
 }
 
@@ -1662,6 +1660,9 @@ EVT_BEGIN(spawn_challenger)
   USER_FUNC(refuse_challenge)
   USER_FUNC(spm::evt_sub::evt_sub_random, 1, LW(0))
   IF_EQUAL(LW(0), 1)
+    GOTO(1)
+  END_IF()
+  IF_SMALL(GWS(0), 420)
     GOTO(1)
   END_IF()
   USER_FUNC(spm::evt_sub::evt_sub_get_mapname, 0, LW(10))

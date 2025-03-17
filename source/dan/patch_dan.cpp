@@ -131,9 +131,9 @@ const char * new_getNextDanMapname(s32 dungeonNo)
     case 1:
     dungeonNo = 9;
     break;
-    case 101:
-    dungeonNo = 9;
-    break;
+    //case 101:
+    //dungeonNo = 9;
+    //break;
   }
   for (s32 i = 104; i < 198; i = i + 10)
   {
@@ -257,7 +257,7 @@ const char * lore_2 = "<housou><p>\n"
 
 const char pixlOptions_1[] =
 "<select 0 -1 540 20>\n"
-"Upgrade random Pixl!\n"
+"Upgrade random Pixl! (40 Coins)\n"
 "Upgrade a specific Pixl! (100 Coins)";
 
 const char * lore_intro_2 = "<housou><p>\n"
@@ -442,6 +442,15 @@ EVT_BEGIN(lore_speech)
   USER_FUNC(spm::evt_msg::evt_msg_continue)
   SWITCH(LW(0))
     CASE_EQUAL(0)
+      USER_FUNC(spm::evt_pouch::evt_pouch_get_coins, LW(0))
+      IF_LARGE_EQUAL(LW(0), 40)
+        SUB(LW(0), 40)
+      ELSE()
+        USER_FUNC(spm::evt_msg::evt_msg_print, 1, PTR(lore_upgrade_fail_coins), 0, PTR("lore"))
+        USER_FUNC(spm::evt_mario::evt_mario_key_on)
+        RETURN()
+      END_IF()
+      USER_FUNC(spm::evt_pouch::evt_pouch_set_coins, LW(0))
       USER_FUNC(spm::evt_snd::evt_snd_bgmoff_f_d, 0, 1000)
       USER_FUNC(spm::evt_msg::evt_msg_print, 1, PTR(lore_intro_2), 0, PTR("lore"))
       USER_FUNC(spm::evt_mario::evt_mario_pos_change, 75, 25, FLOAT(80.0))

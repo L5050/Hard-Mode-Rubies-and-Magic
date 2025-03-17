@@ -67,8 +67,14 @@ static void hookDimentioScripts()
   spm::evtmgr::EvtScriptCode* mainLogic = getInstructionEvtArg(dimentioOnSpawn, 5, 3);
   spm::evtmgr::EvtScriptCode* shootScript = getInstructionEvtArg(mainLogic, 54, 0);
   spm::evtmgr::EvtScriptCode* boxScript = getInstructionEvtArg(mainLogic, 65, 0);
+  //spm::evtmgr::EvtScriptCode* boxScriptMain = getInstructionEvtArg(boxScript, 23, 0);
+  #ifdef SPM_EU0
   spm::evtmgr::EvtScriptCode* boxScriptMain = getInstructionEvtArg(boxScript, 23, 0);
   evtpatch::hookEvtReplace(boxScriptMain, 238, (spm::evtmgr::EvtScriptCode*)makePeachDie);
+  #else
+  spm::evtmgr::EvtScriptCode* boxScriptMain = getInstructionEvtArg(boxScript, 18, 0);
+  evtpatch::hookEvtReplace(boxScriptMain, 233, (spm::evtmgr::EvtScriptCode*)makePeachDie);
+  #endif
   evtpatch::hookEvtReplace(shootScript, 32, (spm::evtmgr::EvtScriptCode*)turnNull);
   spm::map_data::MapData * ls3_12_md = spm::map_data::mapDataPtr("ls3_12");
   spm::evtmgr::EvtScriptCode* postChase = getInstructionEvtArg(ls3_12_md->initScript, 77, 0);
