@@ -183,6 +183,7 @@ static void patchMarioDamage(){
               if (damageType == 8 && tribeId == 386) return 0;
               if (damageType == 8 && tribeId == 396) return 0;
               if (damageType == 20 && tribeId > 0) return 2; //Shell Shock Damage Nerf
+              if (damageType == 20 && tribeId < 0 && checkBossHealth() >= 1) return 2;
               int damage = 0;
               switch(tribeId) {
                 case 211:
@@ -204,6 +205,9 @@ static void patchMarioDamage(){
                 damage = 1;
                 if (spm::mario::marioGetPtr()->miscFlags & 0x4000) {return 0;}
                 //if (damageType == 8) {return 1;}
+                break;
+                case 282:
+                damage = 1;
                 break;
                 case 286:
                 damage = 1;

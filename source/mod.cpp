@@ -515,7 +515,7 @@ static void setBossDef() {
       spm::npcdrv::npcTribes[271].partsList[i].defenses[5] = def;
      }
    }
-   spm::npcdrv::npcTribes[282].partsList[0].defenses[0] = def;  //mimi defense
+   //spm::npcdrv::npcTribes[282].partsList[0].defenses[0] = def;  //mimi defense
    for (int i = 0; i < 15; i++) {//Brobot L-Type defense
       spm::npcdrv::npcTribes[300].partsList[i].defenses[0] = def;
    }
@@ -1076,12 +1076,11 @@ RETURN_FROM_CALL()
 EVT_BEGIN(mimi_death_script)
   USER_FUNC(spm::evt_npc::evt_npc_get_position, PTR("me"), LW(0), LW(1), LW(2))
   DO(10)
-    USER_FUNC(spm::evt_eff::evt_eff, 0, PTR("spm_explosion"), 0, LW(0), LW(1), LW(2), FLOAT(1.5), 0, 0, 0, 0, 0, 0, 0)
+    USER_FUNC(spm::evt_eff::evt_eff, 0, PTR("spm_explosion"), 0, LW(0), LW(1), LW(2), FLOAT(1.2), 0, 0, 0, 0, 0, 0, 0)
     USER_FUNC(spm::evt_snd::evt_snd_sfxon, PTR("SFX_F_BOMB_FIRE1"))
     WAIT_MSEC(200)
   WHILE()
   USER_FUNC(spm::evt_npc::evt_npc_set_unitwork, PTR("me"), 14, 1)
-  USER_FUNC(spm::evt_npc::evt_npc_set_position, PTR("me"), -1000, -1000, -1000)
   USER_FUNC(spm::evt_npc::evt_npc_set_move_mode, PTR("me"), 0)
   RETURN()
 EVT_END()
@@ -1662,7 +1661,7 @@ EVT_BEGIN(spawn_challenger)
   IF_EQUAL(LW(0), 1)
     GOTO(1)
   END_IF()
-  IF_SMALL(GWS(0), 420)
+  IF_SMALL(GSW(0), 420)
     GOTO(1)
   END_IF()
   USER_FUNC(spm::evt_sub::evt_sub_get_mapname, 0, LW(10))
