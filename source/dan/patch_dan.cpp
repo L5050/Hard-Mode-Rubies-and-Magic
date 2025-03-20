@@ -15,6 +15,7 @@
 #include <spm/evt_mario.h>
 #include <spm/evt_npc.h>
 #include <spm/evt_snd.h>
+#include <spm/evt_seq.h>
 #include <spm/evt_sub.h>
 #include <spm/evt_msg.h>
 #include <spm/evt_eff.h>
@@ -41,7 +42,7 @@ extern "C" {
   f32 floatValue = 0.5; // Damage Radius
   f32 floatValue2 = 1.0; // Visual Radius
   f32 fleepValue = 0.5;
-  int throwDamageN = 0;
+  s32 throwDamageN = 1;
   s32 piccoloHealNum = 0;
   bool piccoloAlreadyHealed = false;
 
@@ -89,6 +90,25 @@ extern "C" {
         "bctr\n"
   );
 
+
+  #ifdef SPM_US2
+  void setThrowDamage();
+  asm
+  (
+    ".global setThrowDamage\n"
+    "setThrowDamage:\n"
+        "or 7, 7, 0\n"
+        "lis 12, throwDamageN@ha\n"
+        "ori 12, 12, throwDamageN@l\n"
+        "lwz 11, 0(12)\n"
+        "add 5, 5, 11\n"
+        "lis 12, throwRetLocation@ha\n"
+        "ori 12, 12, throwRetLocation@l\n"
+        "lwz 12, 0 (12)\n"
+        "mtctr 12\n"
+        "bctr\n"
+  );
+  #else
   void setThrowDamage();
   asm
   (
@@ -105,6 +125,7 @@ extern "C" {
         "mtctr 12\n"
         "bctr\n"
   );
+  #endif
 
   void patchPiccoloSfx(char * name)
   {
@@ -255,10 +276,24 @@ const char * lore_2 = "<housou><p>\n"
 "some of my power?<dkey><wait 500></dkey>\n"
 "<o>\n";
 
+const char * lore_3 = "<housou><p>\n"
+"I do have some other\n"
+"options, but they are\n"
+"far more deadly to you...<dkey><wait 500></dkey>\n"
+"<o>\n";
+
 const char pixlOptions_1[] =
-"<select 0 -1 540 20>\n"
+"<select 0 -1 540 10>\n"
 "Upgrade random Pixl! (40 Coins)\n"
-"Upgrade a specific Pixl! (100 Coins)";
+"Upgrade a specific Pixl! (100 Coins)\n"
+"What else you got?\n"
+"Nah, I'm good.";
+
+const char pixlOptions_2[] =
+"<select 0 -1 600 20>\n"
+"Skip 10 floors, lose 1 shop and 5 max HP\n"
+"Enemies drop +1 coin, lose 1 attack\n"
+"Nah, I'm good.";
 
 const char * lore_intro_2 = "<housou><p>\n"
 "Delightful.\n"
@@ -268,6 +303,16 @@ const char * lore_upgrade_pixl_damage = "<housou><p>\n"
 "%s seems to be much\n"
 "stronger now. About\n"
 "%d damage stronger or so.\n"
+"<k>\n"
+"<p>\n"
+"If you survive, heroes, I\n"
+"shall see you again..."
+"<k>\n";
+
+const char * lore_upgrade_pixl_defense = "<housou><p>\n"
+"%s seems to be much\n"
+"tougher now. About\n"
+"%d defense tougher or so.\n"
 "<k>\n"
 "<p>\n"
 "If you survive, heroes, I\n"
@@ -287,6 +332,16 @@ const char * lore_upgrade_piccolo = "<housou><p>\n"
 "Piccolo seems to have increased\n"
 "healing capabilities...\n"
 "<scale 0.7>(Limit one use per floor)\n"
+"<k>\n"
+"<p>\n"
+"If you survive, heroes, I\n"
+"shall see you again..."
+"<k>\n";
+
+const char * lore_upgrade_coins = "<housou><p>\n"
+"You may be much weaker now,\n"
+"but all enemies will drop\n"
+"one extra coin.\n"
 "<k>\n"
 "<p>\n"
 "If you survive, heroes, I\n"
@@ -315,6 +370,8 @@ s32 reinit_pixl_upgrades(spm::evtmgr::EvtEntry * evtEntry, bool firstRun)
     spm::spmario::gp->gsw[1701] = 0;
     spm::spmario::gp->gsw[1702] = 0;
     spm::spmario::gp->gsw[1703] = 0;
+    spm::spmario::gp->gsw[1704] = 0;
+    spm::spmario::gp->gsw[1705] = 0;
     floatValue = 0.5;
     floatValue2 = 1.1;
     fleepValue = 0.5;
@@ -434,6 +491,73 @@ EVT_BEGIN(lore_speech_intro)
   RETURN()
 EVT_END()
 
+EVT_BEGIN(lore_secondary_upgrades)
+  USER_FUNC(spm::evt_msg::evt_msg_print, 1, PTR(lore_3), 0, PTR("lore"))
+  USER_FUNC(spm::evt_msg::evt_msg_select, 1, PTR(pixlOptions_2))
+  USER_FUNC(spm::evt_msg::evt_msg_continue)
+  SWITCH(LW(0))
+    CASE_EQUAL(0)
+      USER_FUNC(spm::evt_snd::evt_snd_bgmoff_f_d, 0, 1000)
+      USER_FUNC(spm::evt_msg::evt_msg_print, 1, PTR(lore_intro_2), 0, PTR("lore"))
+      USER_FUNC(spm::evt_mario::evt_mario_pos_change, 75, 25, FLOAT(80.0))
+      USER_FUNC(spm::evt_mario::evt_mario_get_pos, LW(0), LW(1), LW(2))
+      USER_FUNC(spm::evt_mario::evt_mario_get_height, LW(3))
+      DIVF(LW(3), FLOAT(2.0))
+      ADDF(LW(1), LW(3))
+      USER_FUNC(spm::evt_eff::evt_eff, PTR("eff"), PTR("event_3dget"), 0, LW(0), LW(1), LW(2), 0, 0, 0, 0, 0, 0, 0, 0)
+      USER_FUNC(spm::evt_snd::evt_snd_bgmon, 2, PTR("BGM_FF_ZIGENWAZA_GET1"))
+      WAIT_MSEC(2000)
+      INLINE_EVT()
+          WAIT_MSEC(500)
+          USER_FUNC(spm::evt_mario::evt_mario_set_pose, PTR("I_2"), 0)
+          USER_FUNC(spm::evt_npc::evt_npc_delete, PTR("lore"))
+      END_INLINE()
+      USER_FUNC(spm::evt_eff::evt_eff_softdelete, PTR("eff"))
+      USER_FUNC(spm::evt_pouch::evt_pouch_get_max_hp, LW(1))
+      SUB(LW(1), 5)
+      USER_FUNC(spm::evt_pouch::evt_pouch_set_max_hp, LW(1))
+      WAIT_MSEC(1000)
+      ADD(GSW(1), 11)
+      IF_LARGE(GSW(1), 198)
+        SET(GSW(1), 199)
+        USER_FUNC(spm::evt_seq::evt_seq_set_seq, spm::seqdrv::SEQ_MAPCHANGE, PTR("dan_70"), PTR(0))
+      ELSE()
+        USER_FUNC(spm::evt_seq::evt_seq_set_seq, spm::seqdrv::SEQ_MAPCHANGE, PTR("dan_01"), PTR(0))
+      END_IF()
+    CASE_EQUAL(1)
+      USER_FUNC(upgrade_coins)
+      USER_FUNC(spm::evt_pouch::evt_pouch_get_attack, LW(1))
+      SUB(LW(1), 1)
+      USER_FUNC(spm::evt_pouch::evt_pouch_set_attack, LW(1))
+      USER_FUNC(spm::evt_snd::evt_snd_bgmoff_f_d, 0, 1000)
+      USER_FUNC(spm::evt_msg::evt_msg_print, 1, PTR(lore_intro_2), 0, PTR("lore"))
+      USER_FUNC(spm::evt_mario::evt_mario_pos_change, 75, 25, FLOAT(80.0))
+      USER_FUNC(spm::evt_mario::evt_mario_get_pos, LW(0), LW(1), LW(2))
+      USER_FUNC(spm::evt_mario::evt_mario_get_height, LW(3))
+      DIVF(LW(3), FLOAT(2.0))
+      ADDF(LW(1), LW(3))
+      USER_FUNC(spm::evt_eff::evt_eff, PTR("eff"), PTR("event_3dget"), 0, LW(0), LW(1), LW(2), 0, 0, 0, 0, 0, 0, 0, 0)
+      USER_FUNC(spm::evt_snd::evt_snd_bgmon, 2, PTR("BGM_FF_ZIGENWAZA_GET1"))
+      WAIT_MSEC(2000)
+      INLINE_EVT()
+          WAIT_MSEC(500)
+          USER_FUNC(spm::evt_mario::evt_mario_set_pose, PTR("I_2"), 0)
+          USER_FUNC(spm::evt_npc::evt_npc_delete, PTR("lore"))
+      END_INLINE()
+      USER_FUNC(spm::evt_eff::evt_eff_softdelete, PTR("eff"))
+      WAIT_MSEC(2000)
+      INLINE_EVT()
+          USER_FUNC(spm::evt_mario::evt_mario_set_pose, PTR("M_1c"), 0)
+          USER_FUNC(spm::evt_mario::evt_mario_wait_anim)
+          USER_FUNC(spm::evt_mario::evt_mario_set_pose, PTR("S_1"), 0)
+      END_INLINE()
+      USER_FUNC(spm::evt_snd::evt_snd_bgmon, 0, PTR("BGM_MAP_100F"))
+      USER_FUNC(spm::evt_msg::evt_msg_print, 1, PTR(lore_upgrade_coins), 0, 0)
+  END_SWITCH()
+USER_FUNC(spm::evt_mario::evt_mario_key_on)
+RETURN()
+EVT_END()
+
 EVT_BEGIN(lore_speech)
   USER_FUNC(spm::evt_mario::evt_mario_key_off, 1)
   LBL(0)
@@ -474,7 +598,7 @@ EVT_BEGIN(lore_speech)
           USER_FUNC(spm::evt_mario::evt_mario_set_pose, PTR("S_1"), 0)
       END_INLINE()
       USER_FUNC(spm::evt_snd::evt_snd_bgmon, 0, PTR("BGM_MAP_100F"))
-      USER_FUNC(spm::evt_sub::evt_sub_random, 6, LW(0))
+      USER_FUNC(spm::evt_sub::evt_sub_random, 8, LW(0))
       SWITCH(LW(0))
         CASE_EQUAL(0)
           USER_FUNC(spm::evt_msg::evt_msg_print_insert, 1, PTR(lore_upgrade_pixl_damage), 0, 0, PTR("Cudge"), 2)
@@ -498,6 +622,12 @@ EVT_BEGIN(lore_speech)
         CASE_EQUAL(6)
           USER_FUNC(spm::evt_msg::evt_msg_print, 1, PTR(lore_upgrade_piccolo), 0, 0)
           USER_FUNC(upgrade_piccolo)
+        CASE_EQUAL(7)
+          USER_FUNC(spm::evt_msg::evt_msg_print_insert, 1, PTR(lore_upgrade_pixl_defense), 0, 0, PTR("Slim"), 2)
+          ADD(GSW(1704), 2)
+        CASE_EQUAL(8)
+          USER_FUNC(spm::evt_msg::evt_msg_print_insert, 1, PTR(lore_upgrade_pixl_defense), 0, 0, PTR("Dottie"), 1)
+          ADD(GSW(1705), 1)
       END_SWITCH()
     CASE_EQUAL(1)
       USER_FUNC(spm::evt_pouch::evt_pouch_get_coins, LW(0))
@@ -545,6 +675,9 @@ EVT_BEGIN(lore_speech)
           USER_FUNC(spm::evt_msg::evt_msg_print_insert, 1, PTR(lore_upgrade_pixl_damage), 0, 0, PTR("Boomer"), 2)
           USER_FUNC(upgrade_boomer_radius)
           ADD(GSW(1701), 1)
+        CASE_EQUAL(2)
+          USER_FUNC(spm::evt_msg::evt_msg_print_insert, 1, PTR(lore_upgrade_pixl_defense), 0, 0, PTR("Slim"), 2)
+          ADD(GSW(1704), 2)
         CASE_EQUAL(3)
           USER_FUNC(spm::evt_msg::evt_msg_print_insert, 1, PTR(lore_upgrade_pixl_damage), 0, 0, PTR("Thudley"), 4)
           ADD(GSW(1702), 2)
@@ -554,6 +687,9 @@ EVT_BEGIN(lore_speech)
         CASE_EQUAL(6)
           USER_FUNC(spm::evt_msg::evt_msg_print_insert, 1, PTR(lore_upgrade_pixl_damage), 0, 0, PTR("Cudge"), 2)
           ADD(GSW(1700), 1)
+        CASE_EQUAL(7)
+          USER_FUNC(spm::evt_msg::evt_msg_print_insert, 1, PTR(lore_upgrade_pixl_defense), 0, 0, PTR("Dottie"), 1)
+          ADD(GSW(1705), 1)
         CASE_EQUAL(8)
           USER_FUNC(spm::evt_msg::evt_msg_print, 1, PTR(lore_upgrade_piccolo), 0, 0)
           USER_FUNC(upgrade_piccolo)
@@ -561,6 +697,12 @@ EVT_BEGIN(lore_speech)
           USER_FUNC(spm::evt_msg::evt_msg_print_insert, 1, PTR(lore_upgrade_pixl_damage), 0, 0, PTR("Barry"), 1)
           ADD(GSW(1703), 1)
         END_SWITCH()
+      CASE_EQUAL(2)
+        RUN_EVT(lore_secondary_upgrades)
+        RETURN()
+      CASE_EQUAL(3)
+        USER_FUNC(spm::evt_mario::evt_mario_key_on)
+        RETURN()
   END_SWITCH()
   USER_FUNC(spm::evt_mario::evt_mario_key_on)
   RETURN()

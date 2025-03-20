@@ -44,7 +44,31 @@ using namespace spm;
 using namespace npcdrv;
 using namespace evt_npc;
 
+extern "C" {
+
+void* luigiMainFunc = (void*)mod::getInstructionEvtArg(spm::npcdrv::npcEnemyTemplates[286].unkScript7, 17, 0);
+void* superJumpRetLocation = &luigiMainFunc + 0x568;
+f32 superJumpFloat = 0.25;
+
+void setSuperJumpFloat();
+asm
+(
+  ".global setSuperJumpFloat\n"
+  "setSuperJumpFloat:\n"
+      "lis 12, superJumpFloat@ha\n"
+      "ori 12, 12, superJumpFloat@l\n"
+      "lfs 0, 0x0000 (12)\n"
+      "lis 12, superJumpRetLocation@ha\n"
+      "ori 12, 12, superJumpRetLocation@l\n"
+      "lwz 12, 0 (12)\n"
+      "mtctr 12\n"
+      "bctr\n"
+);
+
+}
+
 namespace mod {
+
 
 EVT_BEGIN(ninja_pls_dont_crash)
 DO(0)
@@ -311,7 +335,7 @@ END_IF()
 IF_LARGE(LW(13), 140)
     SET(LW(13), 140)
 END_IF()
-USER_FUNC(spm::evt_npc::evt_npc_set_position, LW(10), LW(11), LW(12), LW(13))
+USER_FUNC(spm::evt_npc::evt_npc_set_position, LW(10), LW(11), FLOAT(0.0), LW(13))
 USER_FUNC(spm::evt_npc::func_800ff8f8, LW(10), LW(11), LW(12), LW(13))
 USER_FUNC(spm::evt_snd::evt_snd_sfxon_npc, PTR("SFX_EVT_100_PC_LINE_DRAW1"), LW(10))
 USER_FUNC(spm::evt_snd::evt_snd_sfxon_npc, PTR("SFX_EVT_100_PC_LINE_TURN1"), LW(10))
@@ -376,9 +400,41 @@ EVT_BEGIN(mariounk3)
   SET(LW(1), 50)
 RETURN_FROM_CALL()
 
-static void hookShadooScripts()
+EVT_BEGIN(luigiReset)
+  WAIT_MSEC(1000)
+  USER_FUNC(evt_npc_set_unitwork, PTR("me"), 12, 0)
+RETURN_FROM_CALL()
+
+EVT_BEGIN(luigiUnk7_2)
+  USER_FUNC(evt_npc_get_unitwork, PTR("me"), 12, LW(15))
+  IF_NOT_EQUAL(LW(15), 1)
+    SET(LW(0), 1)
+    USER_FUNC(evt_npc_set_unitwork, PTR("me"), 12, 1)
+  ELSE()
+    SET(LW(0), 0)
+  END_IF()
+RETURN_FROM_CALL()
+
+EVT_BEGIN(luigiUnk7_1)
+  USER_FUNC(spm::evt_mario::evt_mario_get_pos, LW(0), LW(1), LW(2))
+  ADD(LW(1), 75)
+RETURN_FROM_CALL()
+
+spm::evtmgr::EvtScriptCode luigiPatch[] = { IF_NOT_EQUAL(LW(0), 1) };
+spm::evtmgr::EvtScriptCode luigiPatch2[] = { USER_FUNC(spm::evt_npc::evt_npc_arc_to, PTR("me"), LW(0), LW(1), LW(2), 500, FLOAT(0.0), FLOAT(55.0), 0, 0, 0) };
+
+static void inline hookShadooScripts()
 {
+  spm::evtmgr::EvtScriptCode* luigi_attack_script = spm::npcdrv::npcEnemyTemplates[286].unkScript7;
+  spm::evtmgr::EvtScriptCode* luigi_idle_script = spm::npcdrv::npcEnemyTemplates[286].unkScript2;
+  evtpatch::hookEvt(luigi_idle_script, 6, (spm::evtmgr::EvtScriptCode*)luigiReset);
+  evtpatch::hookEvtReplace(luigi_attack_script, 9, luigiUnk7_1);
+  evtpatch::hookEvtReplace(luigi_attack_script, 2, luigiUnk7_2);
+  evtpatch::patchEvtInstruction(luigi_attack_script, 3, luigiPatch);
+  evtpatch::patchEvtInstruction(luigi_attack_script, 3, luigiPatch);
+  //writeBranch( & luigiMainFunc, 0x564, setSuperJumpFloat);
   evtpatch::hookEvtReplaceBlock(spm::dan::dan_shadoo_fight_evt, 42, (spm::evtmgr::EvtScriptCode*)shadooFight, 91);
+  evtpatch::patchEvtInstruction(spm::dan::dan_shadoo_main_evt, 126, EVT_CAST(USER_FUNC(spm::evt_snd::evt_snd_bgmon, 0, PTR("BGM_BTL_BOSS_STG4"))));
   evtpatch::hookEvt(spm::npcdrv::npcEnemyTemplates[183].onSpawnScript, 85, (spm::evtmgr::EvtScriptCode*)returnChunksDeathScript);
   evtpatch::hookEvt(spm::npcdrv::npcEnemyTemplates[183].unkScript6, 1, (spm::evtmgr::EvtScriptCode*)hookChunksDeathScript); //Fix for if O'Chunks is killed outside of boss rooms
   evtpatch::hookEvt(spm::npcdrv::npcEnemyTemplates[422].unkScript3, 71, (spm::evtmgr::EvtScriptCode*)mariounk3);

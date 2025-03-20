@@ -72,6 +72,17 @@ static void patchMarioDamage(){
           damage = 1;
         }
       }
+      damage = damage * 2;
+      s16 pixl = spm::mario_pouch::pouchGetCurPixl();
+      if (pixl == 0x0DF)
+      {
+        damage -= spm::spmario::gp->gsw[1704];
+      }
+      if (pixl == 0x0E4)
+      {
+        damage -= spm::spmario::gp->gsw[1705];
+      }
+      if (damage < 0) damage = 0;
       //adds the rpg elements to boss fights
       int health = checkBossHealth();
       s32 plotValue = globals -> gsw0;
@@ -90,7 +101,7 @@ static void patchMarioDamage(){
             }
           }
         } else {
-          marioTakeDamage(position, flags, damage * 2);
+          marioTakeDamage(position, flags, damage);
         }
       } else if (plotValue == 0xd5 && * _bossSequence > 0) {
         if (health <= 10 && * _bossSequence == 1 && health >= 1) {
@@ -107,7 +118,7 @@ static void patchMarioDamage(){
             }
           }
         } else {
-          marioTakeDamage(position, flags, damage * 2);
+          marioTakeDamage(position, flags, damage);
         }
       } else if (plotValue == 0xd5 && * _bossSequence > 0) {
         if (health <= 6 && * _bossSequence == 1) {
@@ -124,7 +135,7 @@ static void patchMarioDamage(){
             }
           }
         } else {
-          marioTakeDamage(position, flags, damage * 2);
+          marioTakeDamage(position, flags, damage);
         }
       } else if (plotValue == 0x19f && * _bossSequence > 0) {
         if (health <= 150 && * _bossSequence == 3) {
@@ -165,10 +176,10 @@ static void patchMarioDamage(){
             }
           }
         } else {
-          marioTakeDamage(position, flags, damage * 2);
+          marioTakeDamage(position, flags, damage);
         }
       } else {
-        marioTakeDamage(position, flags, damage * 2);
+        marioTakeDamage(position, flags, damage);
       }
     }
   );
@@ -183,7 +194,12 @@ static void patchMarioDamage(){
               if (damageType == 8 && tribeId == 386) return 0;
               if (damageType == 8 && tribeId == 396) return 0;
               if (damageType == 20 && tribeId > 0) return 2; //Shell Shock Damage Nerf
-              if (damageType == 20 && tribeId < 0 && checkBossHealth() >= 1) return 2;
+              wii::os::OSReport("damageTypeeeeee %d, tribeId %d\n", tribeId);
+              int curBossHealth = checkBossHealth();
+              if (damageType == 20 && tribeId < 0 && curBossHealth >= 1) 
+              {
+              return 2;
+              }
               int damage = 0;
               switch(tribeId) {
                 case 211:
@@ -280,7 +296,7 @@ static void patchMarioDamage(){
                 wii::os::OSReport("dan running %d\n", damageType);
                 if (damage == 0)
                 {
-                  if (tribeId > 0)  {
+                  if (tribeId > -1)  {
                   int cards = spm::mario_pouch::pouchGetCardCount(spm::npcdrv::npcTribes[tribeId].catchCardItemId);
                   cards = cards + 1;
                   damage = marioCalcDamageToEnemy(damageType, tribeId) / cards;

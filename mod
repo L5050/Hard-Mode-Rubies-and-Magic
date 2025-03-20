@@ -1,1 +1,1 @@
-/home/lily/Apps/Flimm/extracted/DATA/files/mod
+/home/lily/Apps/Flimm/extracted/files/mod

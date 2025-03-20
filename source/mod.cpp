@@ -1127,6 +1127,14 @@ EVT_BEGIN(makeBowserJump)
   USER_FUNC(spm::evt_npc::evt_npc_jump_to, PTR("me"), LW(0), LW(1), LW(2), FLOAT(0.0), 180)
 RETURN_FROM_CALL()
 
+EVT_BEGIN(fixBowserAnims)
+  USER_FUNC(spm::evt_npc::evt_npc_set_anim, PTR("me"), 5, 1)
+RETURN_FROM_CALL()
+
+EVT_BEGIN(fixBowserOnSpawn)
+  USER_FUNC(spm::evt_npc::evt_npc_set_property, PTR("me"), 14, PTR(spm::npcdrv::npcTribes[315].animDefs))
+RETURN_FROM_CALL()
+
 EVT_BEGIN(changeBowserScript)
   USER_FUNC(spm::evt_sub::evt_sub_random, 3, LW(0))
   IF_EQUAL(LW(0), 1)
@@ -1261,10 +1269,12 @@ RETURN_FROM_CALL()
 
 void hookBowserScripts()
 {
-  //spm::evtmgr::EvtScriptCode* bowserOnSpawn = spm::npcdrv::npcEnemyTemplates[285].onSpawnScript;
+  spm::evtmgr::EvtScriptCode* bowserOnSpawn = spm::npcdrv::npcEnemyTemplates[285].onSpawnScript;
   spm::evtmgr::EvtScriptCode* mainLogic = spm::npcdrv::npcEnemyTemplates[285].unkScript7;
   evtpatch::hookEvt(mainLogic, 37, (spm::evtmgr::EvtScriptCode*)changeBowserScript);
   evtpatch::hookEvt(mainLogic, 172, (spm::evtmgr::EvtScriptCode*)makeBowserJump);
+  evtpatch::hookEvt(mainLogic, 228, fixBowserAnims);
+  evtpatch::hookEvt(bowserOnSpawn, 1, fixBowserOnSpawn);
 }
 
 void hookLs4_11()
@@ -1858,23 +1868,33 @@ setFloats:
             //evtpatch::hookEvt(spm::npc_dimeen_l::dimen_unk_fight_script_3, 1, patch_dimen);
         }
 
-        void patchTpl(u32 destId, u32 srcId, wii::tpl::TPLHeader *destTpl, wii::tpl::TPLHeader *srcTpl, const char *filePath = nullptr, bool free = false) {
+        struct TextureWork {
+          u32 destId = 0;
+          u32 srcId = 0;
+          wii::tpl::TPLHeader *destTpl = nullptr;
+          wii::tpl::TPLHeader *srcTpl = nullptr;
+          const char *filePath;
+          bool free = false;
+          s32 heapType = spm::memory::Heap::HEAP_MAIN;
+        };
+
+        void patchTpl(TextureWork * textureWork) {
 
           // Loads the tpl if not already loaded by the stated filePath
-          if (srcTpl == nullptr){
-          spm::filemgr::FileEntry * srcFile = spm::filemgr::fileAllocf(4, filePath);
+          if (textureWork->srcTpl == nullptr){
+          spm::filemgr::FileEntry * srcFile = spm::filemgr::fileAllocf(4, textureWork->filePath);
           s32 tplSize = srcFile->length;
-          srcTpl = (wii::tpl::TPLHeader *)spm::memory::__memAlloc(spm::memory::Heap::HEAP_MAIN, tplSize);
-          msl::string::memcpy(srcTpl, srcFile->sp->data, tplSize);
+          textureWork->srcTpl = (wii::tpl::TPLHeader *)spm::memory::__memAlloc(textureWork->heapType, tplSize);
+          msl::string::memcpy(textureWork->srcTpl, srcFile->sp->data, tplSize);
           spm::filemgr::fileFree(srcFile);
           }
 
           // Patches the destination tpl with the one given by the mod.rel
-          destTpl->imageTable[destId] = srcTpl->imageTable[srcId];
+          textureWork->destTpl->imageTable[textureWork->destId] = textureWork->srcTpl->imageTable[textureWork->srcId];
 
           // Free the memory of the tpl loaded from mod.rel to prevent a leak
-          if (free == true){
-          spm::memory::__memFree(spm::memory::Heap::HEAP_MAIN, srcTpl);
+          if (textureWork->free){
+          spm::memory::__memFree(textureWork->heapType, textureWork->srcTpl);
           }
           return;
         }
@@ -1892,7 +1912,6 @@ void main() {
   reduceXpGained();
   patchVariables();
   evtpatch::evtmgrExtensionInit(); // Initialize EVT scripting extension
-  hookBowserScripts();
   e_dmenMain();
   hookSuperDimentioScripts();
   hookBleckScripts();
@@ -1906,10 +1925,12 @@ void main() {
   patchStandardDeathScript();
   hookSammerScripts();
   shadooMain();
+  hookBowserScripts();
   patch_dan::patch_dan_main();
   #ifdef SPM_EU0
-  wii::tpl::TPLHeader *myTplHeader = nullptr;
-  patchTpl(116, 0, (wii::tpl::TPLHeader *)spm::icondrv::icondrv_wp->wiconTpl->sp->data, myTplHeader, "./a/n_mg_flower-", true);
+  //wii::tpl::TPLHeader *myTplHeader = nullptr;
+  TextureWork myTextures = {116, 0, (wii::tpl::TPLHeader *)spm::icondrv::icondrv_wp->wiconTpl->sp->data, nullptr, "./a/n_mg_flower-", true};
+  patchTpl(&myTextures);
   #endif
   //hampter(); // will always live in our memories
 }

@@ -45,7 +45,12 @@ EVT_END()
 
 void patch_wracktail_main()
 {
+    wii::os::OSReport("Wrackle unk7: %p\n", spm::npcdrv::npcEnemyTemplates[420].unkScript7);
+    #ifdef SPM_US2
+    evtpatch::hookEvtReplace(spm::npcdrv::npcEnemyTemplates[420].unkScript7, 20, wrackle_transform);
+    #else
     evtpatch::hookEvtReplace(spm::npcdrv::npcEnemyTemplates[420].unkScript7, 32, wrackle_transform);
+    #endif
     evtpatch::hookEvt(spm::dan::dan_wracktail_main_evt, 8, wrackle_load_async);
 }
 
