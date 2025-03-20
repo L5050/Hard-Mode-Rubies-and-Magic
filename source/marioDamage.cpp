@@ -3,7 +3,6 @@
 #include "patch.h"
 #include "mod.h"
 #include "evt_cmd.h"
-#include "scripting.cpp"
 
 
 #include <types.h>
@@ -18,6 +17,8 @@
 #include <spm/evt_mario.h>
 #include <spm/evt_pouch.h>
 #include <spm/evt_sub.h>
+#include <spm/item_event_data.h>
+#include <spm/mario_pouch.h>
 #include <spm/evt_mobj.h>
 #include <spm/evt_msg.h>
 #include <spm/evt_npc.h>

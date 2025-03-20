@@ -54,7 +54,7 @@ WHILE()
 RETURN()
 EVT_END()
 
-EVT_BEGIN(shadooFight)
+EVT_BEGIN(shadoo_fight_evt)
 DO(0)
     USER_FUNC(spm::evt_npc::evt_npc_get_active_count, LW(0))
     IF_EQUAL(LW(0), 0)
@@ -406,7 +406,7 @@ static void hookShadooScripts()
   evtpatch::patchEvtInstruction(luigi_attack_script, 3, luigiPatch);
   evtpatch::patchEvtInstruction(luigi_attack_script, 3, luigiPatch);
   
-  evtpatch::hookEvtReplaceBlock(spm::dan::dan_shadoo_fight_evt, 42, (spm::evtmgr::EvtScriptCode*)shadooFight, 91);
+  evtpatch::hookEvtReplaceBlock(spm::dan::dan_shadoo_fight_evt, 42, (spm::evtmgr::EvtScriptCode*)shadoo_fight_evt, 91);
   evtpatch::patchEvtInstruction(spm::dan::dan_shadoo_main_evt, 126, EVT_CAST(USER_FUNC(spm::evt_snd::evt_snd_bgmon, 0, PTR("BGM_BTL_BOSS_STG4"))));
   evtpatch::hookEvt(spm::npcdrv::npcEnemyTemplates[183].onSpawnScript, 85, (spm::evtmgr::EvtScriptCode*)returnChunksDeathScript);
   evtpatch::hookEvt(spm::npcdrv::npcEnemyTemplates[183].unkScript6, 1, (spm::evtmgr::EvtScriptCode*)hookChunksDeathScript); //Fix for if O'Chunks is killed outside of boss rooms

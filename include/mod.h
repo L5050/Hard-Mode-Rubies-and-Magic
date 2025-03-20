@@ -19,6 +19,9 @@ EVT_DECLARE(evt_memcard_save)
 extern spm::mario::MarioWork * marioWork;
 extern spm::spmario::SpmarioGlobals * globals;
 EVT_DECLARE(turnNull)
+EVT_DECLARE(iceStorm)
+EVT_DECLARE(fireBurst)
+EVT_DECLARE(shootingStar)
 
 spm::evtmgr::EvtScriptCode* getStandardDeathScript();
 spm::evtmgr::EvtScriptCode* getInstructionEvtArg(spm::evtmgr::EvtScriptCode* script, s32 line, int instruction);

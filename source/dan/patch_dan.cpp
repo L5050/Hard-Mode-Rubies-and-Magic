@@ -91,24 +91,6 @@ extern "C" {
   );
 
 
-  #ifdef SPM_US2
-  void setThrowDamage();
-  asm
-  (
-    ".global setThrowDamage\n"
-    "setThrowDamage:\n"
-        "or 7, 7, 0\n"
-        "lis 12, throwDamageN@ha\n"
-        "ori 12, 12, throwDamageN@l\n"
-        "lwz 11, 0(12)\n"
-        "add 5, 5, 11\n"
-        "lis 12, throwRetLocation@ha\n"
-        "ori 12, 12, throwRetLocation@l\n"
-        "lwz 12, 0 (12)\n"
-        "mtctr 12\n"
-        "bctr\n"
-  );
-  #else
   void setThrowDamage();
   asm
   (
@@ -125,7 +107,6 @@ extern "C" {
         "mtctr 12\n"
         "bctr\n"
   );
-  #endif
 }
 
 namespace mod {

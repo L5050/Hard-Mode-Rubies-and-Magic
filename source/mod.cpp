@@ -4,7 +4,6 @@
 #include "evt_cmd.h"
 #include "evtpatch.h"
 #include "exception.h"
-#include "scripting.cpp"
 #include "exception.h"
 #include "romfontexpand.h"
 #include "shadoo.h"
@@ -29,6 +28,7 @@
 #include <spm/evt_mobj.h>
 #include <spm/evt_msg.h>
 #include <spm/evt_npc.h>
+#include <spm/item_event_data.h>
 #include <spm/evt_pouch.h>
 #include <spm/evt_sub.h>
 #include <spm/memory.h>
