@@ -1926,7 +1926,7 @@ void main() {
   hookSammerScripts();
   shadooMain();
   hookBowserScripts();
-  patch_dan::patch_dan_main();
+  patch_dan_main();
   #ifdef SPM_EU0
   //wii::tpl::TPLHeader *myTplHeader = nullptr;
   TextureWork myTextures = {116, 0, (wii::tpl::TPLHeader *)spm::icondrv::icondrv_wp->wiconTpl->sp->data, nullptr, "./a/n_mg_flower-", true};

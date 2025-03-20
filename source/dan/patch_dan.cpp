@@ -140,7 +140,7 @@ extern "C" {
   }
 }
 
-namespace mod::patch_dan {
+namespace mod {
 
 const char * (*getNextDanMapname)(s32 dungeonNo);
 spm::evt_door::DokanDesc * mac_05_pipe;

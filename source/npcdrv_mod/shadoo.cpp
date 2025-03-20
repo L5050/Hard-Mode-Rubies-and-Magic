@@ -400,7 +400,7 @@ RETURN_FROM_CALL()
 spm::evtmgr::EvtScriptCode luigiPatch[] = { IF_NOT_EQUAL(LW(0), 1) };
 spm::evtmgr::EvtScriptCode luigiPatch2[] = { USER_FUNC(spm::evt_npc::evt_npc_arc_to, PTR("me"), LW(0), LW(1), LW(2), 500, FLOAT(0.0), FLOAT(55.0), 0, 0, 0) };
 
-static void inline hookShadooScripts()
+static void hookShadooScripts()
 {
   spm::evtmgr::EvtScriptCode* luigi_attack_script = spm::npcdrv::npcEnemyTemplates[286].unkScript7;
   spm::evtmgr::EvtScriptCode* luigi_idle_script = spm::npcdrv::npcEnemyTemplates[286].unkScript2;
