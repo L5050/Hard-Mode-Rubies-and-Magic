@@ -40,10 +40,6 @@
 #include <spm/evtmgr_cmd.h>
 #include <wii/os.h>
 
-using namespace spm;
-using namespace npcdrv;
-using namespace evt_npc;
-
 namespace mod {
 
 
@@ -379,14 +375,14 @@ RETURN_FROM_CALL()
 
 EVT_BEGIN(luigiReset)
   WAIT_MSEC(1000)
-  USER_FUNC(evt_npc_set_unitwork, PTR("me"), 12, 0)
+  USER_FUNC(spm::evt_npc::evt_npc_set_unitwork, PTR("me"), 12, 0)
 RETURN_FROM_CALL()
 
 EVT_BEGIN(luigiUnk7_2)
-  USER_FUNC(evt_npc_get_unitwork, PTR("me"), 12, LW(15))
+  USER_FUNC(spm::evt_npc::evt_npc_get_unitwork, PTR("me"), 12, LW(15))
   IF_NOT_EQUAL(LW(15), 1)
     SET(LW(0), 1)
-    USER_FUNC(evt_npc_set_unitwork, PTR("me"), 12, 1)
+    USER_FUNC(spm::evt_npc::evt_npc_set_unitwork, PTR("me"), 12, 1)
   ELSE()
     SET(LW(0), 0)
   END_IF()

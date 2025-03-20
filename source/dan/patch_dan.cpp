@@ -126,24 +126,24 @@ extern "C" {
         "bctr\n"
   );
   #endif
-
-  void patchPiccoloSfx(char * name)
-  {
-    spm::spmario_snd::spsndSFXOn(name);
-    if (piccoloAlreadyHealed == false) {
-    spm::mario_pouch::MarioPouchWork * pouch = spm::mario_pouch::pouchGetPtr();
-    pouch->hp += piccoloHealNum;
-    piccoloAlreadyHealed = true;
-    if (pouch->hp > pouch->maxHp) pouch->hp = pouch->maxHp;
-    }
-    return;
-  }
 }
 
 namespace mod {
 
 const char * (*getNextDanMapname)(s32 dungeonNo);
 spm::evt_door::DokanDesc * mac_05_pipe;
+
+void patchPiccoloSfx(char * name)
+{
+  spm::spmario_snd::spsndSFXOn(name);
+  if (piccoloAlreadyHealed == false) {
+  spm::mario_pouch::MarioPouchWork * pouch = spm::mario_pouch::pouchGetPtr();
+  pouch->hp += piccoloHealNum;
+  piccoloAlreadyHealed = true;
+  if (pouch->hp > pouch->maxHp) pouch->hp = pouch->maxHp;
+  }
+  return;
+}
 
 const char * new_getNextDanMapname(s32 dungeonNo)
 {
