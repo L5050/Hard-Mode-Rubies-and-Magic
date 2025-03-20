@@ -44,29 +44,6 @@ using namespace spm;
 using namespace npcdrv;
 using namespace evt_npc;
 
-extern "C" {
-
-void* luigiMainFunc = (void*)mod::getInstructionEvtArg(spm::npcdrv::npcEnemyTemplates[286].unkScript7, 17, 0);
-void* superJumpRetLocation = &luigiMainFunc + 0x568;
-f32 superJumpFloat = 0.25;
-
-void setSuperJumpFloat();
-asm
-(
-  ".global setSuperJumpFloat\n"
-  "setSuperJumpFloat:\n"
-      "lis 12, superJumpFloat@ha\n"
-      "ori 12, 12, superJumpFloat@l\n"
-      "lfs 0, 0x0000 (12)\n"
-      "lis 12, superJumpRetLocation@ha\n"
-      "ori 12, 12, superJumpRetLocation@l\n"
-      "lwz 12, 0 (12)\n"
-      "mtctr 12\n"
-      "bctr\n"
-);
-
-}
-
 namespace mod {
 
 
@@ -432,7 +409,7 @@ static void inline hookShadooScripts()
   evtpatch::hookEvtReplace(luigi_attack_script, 2, luigiUnk7_2);
   evtpatch::patchEvtInstruction(luigi_attack_script, 3, luigiPatch);
   evtpatch::patchEvtInstruction(luigi_attack_script, 3, luigiPatch);
-  //writeBranch( & luigiMainFunc, 0x564, setSuperJumpFloat);
+  
   evtpatch::hookEvtReplaceBlock(spm::dan::dan_shadoo_fight_evt, 42, (spm::evtmgr::EvtScriptCode*)shadooFight, 91);
   evtpatch::patchEvtInstruction(spm::dan::dan_shadoo_main_evt, 126, EVT_CAST(USER_FUNC(spm::evt_snd::evt_snd_bgmon, 0, PTR("BGM_BTL_BOSS_STG4"))));
   evtpatch::hookEvt(spm::npcdrv::npcEnemyTemplates[183].onSpawnScript, 85, (spm::evtmgr::EvtScriptCode*)returnChunksDeathScript);
