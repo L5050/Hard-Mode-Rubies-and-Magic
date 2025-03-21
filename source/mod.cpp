@@ -462,9 +462,9 @@ static void setBossHP()
   spm::npcdrv::npcTribes[292].maxHp = 20; //Dimentio 3
   spm::npcdrv::npcTribes[305].maxHp = 25; //Count Bleck
   spm::npcdrv::npcTribes[309].maxHp = 170; //Super Dimentio
-  spm::npcdrv::npcTribes[330].maxHp = 12; //Dark Mario
+  spm::npcdrv::npcTribes[330].maxHp = 20; //Dark Mario
   spm::npcdrv::npcTribes[331].maxHp = 12; //Dark Luigi
-  spm::npcdrv::npcTribes[332].maxHp = 12; //Dark Peach
+  spm::npcdrv::npcTribes[332].maxHp = 20; //Dark Peach
   spm::npcdrv::npcTribes[333].maxHp = 12; //Dark Bowser
 }
 

@@ -27,92 +27,75 @@
 #include <spm/map_data.h>
 #include <spm/npc_ninja.h>
 #include <spm/evtmgr_cmd.h>
+#include <spm/memory.h>
 #include <wii/os.h>
 
-using namespace spm::npcdrv;
-using namespace spm::mario_pouch;
-
-int curPixlArray[17]; // I want this to be a u16 but for some fucking reason it causes the game to shit everywhere if I make it one so you get int instead
-
 extern "C" {
-  void* boomerRetLocation1 = &spm::mario_motion::boomerFuseMain + 0x9D8;
-  void* boomerRetLocation2 = &spm::mario_motion::boomerFuseMain + 0x90C;
-  void* fleepRetLocation = &spm::npcdrv::npcFleeped + 0x1C;
-  void* throwRetLocation = &spm::npcdrv::throwDamage + 0x110;
-  f32 floatValue = 0.5; // Damage Radius
-  f32 floatValue2 = 1.0; // Visual Radius
-  f32 fleepValue = 0.5;
-  s32 throwDamageN = 1;
-  s32 piccoloHealNum = 0;
-  bool piccoloAlreadyHealed = false;
 
-  void setBoomDamageRadiusFloat();
-  asm
-  (
-    ".global setBoomDamageRadiusFloat\n"
-    "setBoomDamageRadiusFloat:\n"
-        "lis 12, floatValue@ha\n"
-        "ori 12, 12, floatValue@l\n"
-        "lfs 27, 0x0000 (12)\n"
-        "lis 12, boomerRetLocation1@ha\n"
-        "ori 12, 12, boomerRetLocation1@l\n"
-        "lwz 12, 0 (12)\n"
-        "mtctr 12\n"
-        "bctr\n"
-  );
-  void setBoomVisualFloat();
-  asm
-  (
-    ".global setBoomVisualFloat\n"
-    "setBoomVisualFloat:\n"
-        "lis 12, floatValue2@ha\n"
-        "ori 12, 12, floatValue2@l\n"
-        "lfs 4, 0x0000 (12)\n"
-        "lis 12, boomerRetLocation2@ha\n"
-        "ori 12, 12, boomerRetLocation2@l\n"
-        "lwz 12, 0 (12)\n"
-        "mtctr 12\n"
-        "bctr\n"
-  );
-
-  void setFleepFloat();
-  asm
-  (
-    ".global setFleepFloat\n"
-    "setFleepFloat:\n"
-        "lis 12, fleepValue@ha\n"
-        "ori 12, 12, fleepValue@l\n"
-        "lfs 0, 0x0000 (12)\n"
-        "lis 12, fleepRetLocation@ha\n"
-        "ori 12, 12, fleepRetLocation@l\n"
-        "lwz 12, 0 (12)\n"
-        "mtctr 12\n"
-        "bctr\n"
-  );
-
-
-  void setThrowDamage();
-  asm
-  (
-    ".global setThrowDamage\n"
-    "setThrowDamage:\n"
-        "or 7, 7, 0\n"
-        "lis 12, throwDamageN@ha\n"
-        "ori 12, 12, throwDamageN@l\n"
-        "lwz 11, 0(12)\n"
-        "add 6, 6, 11\n"
-        "lis 12, throwRetLocation@ha\n"
-        "ori 12, 12, throwRetLocation@l\n"
-        "lwz 12, 0 (12)\n"
-        "mtctr 12\n"
-        "bctr\n"
-  );
 }
 
 namespace mod {
 
+int curPixlArray[17]; // I want this to be a u16 but for some fucking reason it causes the game to shit everywhere if I make it one so you get int instead
+
 const char * (*getNextDanMapname)(s32 dungeonNo);
 spm::evt_door::DokanDesc * mac_05_pipe;
+s32 throwDamageN = 1;
+f32 fleepValue = 0.5;
+s32 piccoloHealNum = 0;
+bool piccoloAlreadyHealed = false;
+void (*npcFleeped)(spm::npcdrv::NPCEntry *npcEntry);
+
+int hookThoreauDamage(spm::npcdrv::NPCEntry *npcEntry, spm::npcdrv::NPCPart *npcPart, s32 defenseType, s32 power, u32 param_5, s32 param_6)
+{
+  power += throwDamageN;
+  return spm::npcdrv::npcTakeDamage(npcEntry, npcPart, defenseType, power, param_5, param_6);
+}
+
+void hookFleepTime(spm::npcdrv::NPCEntry *npcEntry)
+{
+  npcFleeped(npcEntry);
+  npcEntry->fleepStunTime = fleepValue;
+  return;
+}
+
+void* boomerRetLocation1 = &spm::mario_motion::boomerFuseMain + 0x9D8;
+void* boomerRetLocation2 = &spm::mario_motion::boomerFuseMain + 0x90C;
+f32 floatValue = 0.5; // Damage Radius
+f32 floatValue2 = 1.0; // Visual Radius
+
+// I never. ever. want to do this again. :Nicesoftlock:
+void setBoomDamageRadiusFloat() {
+  uintptr_t addr_float = (uintptr_t)&floatValue;
+  uintptr_t addr_ret = (uintptr_t)&boomerRetLocation1;
+
+  asm (
+      "lfs 27, 0(%1)\n"     // Load the float into f27
+      
+      "lwz 12, 0(%0)\n"     // Load boomer
+      "mtctr 12\n"          // Move to ctr
+      "bctr\n"              // Branch to boomer
+      :
+      : "r"(addr_ret), "r"(addr_float)
+      : "r12", "27", "memory"
+  );
+}
+
+void setBoomVisualFloat() {
+  uintptr_t addr_float = (uintptr_t)&floatValue2;
+  uintptr_t addr_ret = (uintptr_t)&boomerRetLocation2;
+
+  asm (
+      "lfs 4, 0(%1)\n"      // Load the floating into f4
+      
+      "lwz 12, 0(%0)\n"     // Load boomer
+      "mtctr 12\n"          // Move to ctr
+      "bctr\n"              // Branch to boomer
+      :
+      : "r"(addr_ret), "r"(addr_float)
+      : "r12", "4", "memory"
+  );
+}
 
 void patchPiccoloSfx(char * name)
 {
@@ -137,18 +120,18 @@ const char * new_getNextDanMapname(s32 dungeonNo)
     //dungeonNo = 9;
     //break;
   }
-  for (s32 i = 104; i < 198; i = i + 10)
+  for (s32 i = 104; i < 199; i = i + 10)
   {
-    if ((i + 10) >= 198) break;
+    if ((i + 10) >= 199) break;
     if (dungeonNo == i) return getNextDanMapname(9);
   }
   
   return getNextDanMapname(dungeonNo);
 }
 
-static void inline initPixlArray()
+static void initPixlArray()
 {
-    MarioPouchWork * mario_pouch_wp = pouchGetPtr();
+  spm::mario_pouch::MarioPouchWork * mario_pouch_wp = spm::mario_pouch::pouchGetPtr();
     u16 pixlArrayIndex = 0;
 
     for (u16 i = 0; i < POUCH_FAIRY_ITEM_MAX; i++)
@@ -162,30 +145,32 @@ static void inline initPixlArray()
     curPixlArray[pixlArrayIndex] = -1;
 }
 
-static void inline patchBoomer()
+static void patchBoomer()
 {
   writeBranch( & spm::mario_motion::boomerFuseMain, 0x9D4, setBoomDamageRadiusFloat);
   writeBranch( & spm::mario_motion::boomerFuseMain, 0x908, setBoomVisualFloat);
   writeWord(spm::mario_motion::boomerFuseMain, 0x904, 0x60000000);
 }
 
-static void inline patchFleep()
+static void patchFleep()
 {
-  writeBranch( & spm::npcdrv::npcFleeped, 0x18, setFleepFloat);
+  //writeBranch( & spm::npcdrv::npcFleeped, 0x18, setFleepFloat);
+  npcFleeped = patch::hookFunction(spm::npcdrv::npcFleeped, hookFleepTime);
 }
 
-static void inline patchThoreau()
+static void patchThoreau()
 {
-  writeBranch( & spm::npcdrv::throwDamage, 0x10C, setThrowDamage);
+  //writeBranch( & spm::npcdrv::throwDamage, 0x10C, setThrowDamage);
+  writeBranchLink( & spm::npcdrv::throwDamage, 0x110, hookThoreauDamage);
 }
 
-static void inline patchPiccolo()
+static void patchPiccolo()
 {
   writeBranchLink( spm::mario_motion::marioMotTbl[0x29].mainFunc, 0x624, patchPiccoloSfx);
   evtpatch::hookEvt(spm::dan::dan_enemy_room_init_evt, 1, reset_piccolo);
 }
 
-static inline void increaseCoinGained() {
+static void increaseCoinGained() {
   for (int i = 0; i < 535; i++) {
     if (i != 0x7f && i != 0x81 && i != 0x83) {
     spm::npcdrv::npcTribes[i].coinDropBaseCount += 1;
@@ -193,7 +178,7 @@ static inline void increaseCoinGained() {
   }
 }
 
-static NPCTribeAnimDef loreAnims[] = {
+static spm::npcdrv::NPCTribeAnimDef loreAnims[] = {
     {0, "S_4"}, // Standing (ID 0 is idle animation)
     {1, "W_1"}, // Slow walk
     {3, "T_4"}, // Talking (ID 3 is the ID to use when talking)
@@ -365,7 +350,7 @@ s32 reinit_pixl_upgrades(spm::evtmgr::EvtEntry * evtEntry, bool firstRun)
 
     // gives players any pixls they missed if they played through the main story
     if (spm::spmario::gp->gsw0 >= 420)  {
-    MarioPouchWork * mario_pouch_wp = pouchGetPtr();
+    spm::mario_pouch::MarioPouchWork * mario_pouch_wp = spm::mario_pouch::pouchGetPtr();
     for (int i = 0; i < 232 - 220 - 1; i++)
     {
       if (i != 0x0E7) // dont give away dashell
@@ -720,7 +705,7 @@ EVT_BEGIN(flipsideStart)
   END_IF()
 RETURN_FROM_CALL()
 
-static void inline patch_mac()
+static void patch_mac()
 {
   spm::map_data::MapData * mac_05_md = spm::map_data::mapDataPtr("mac_05");
   spm::map_data::MapData * mac_15_md = spm::map_data::mapDataPtr("mac_15");

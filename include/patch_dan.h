@@ -6,6 +6,7 @@
 #include <spm/npc_ninja.h>
 #include <spm/evtmgr_cmd.h>
 #include <wii/os.h>
+
 namespace mod {
 
 EVT_DECLARE(reset_piccolo)
