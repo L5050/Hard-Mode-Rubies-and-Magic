@@ -476,6 +476,27 @@ EVT_BEGIN(dark_mario_attack_patch)
   END_IF()
 RETURN_FROM_CALL()
 
+EVT_BEGIN(dark_peach_attack_patch)
+  WAIT_FRM(1)
+  USER_FUNC(spm::evt_mario::evt_mario_get_character, LW(0))
+  IF_NOT_EQUAL(LW(0), 2)
+    USER_FUNC(spm::evt_npc::evt_npc_set_move_mode, PTR("me"), 0)
+    USER_FUNC(spm::evt_npc::evt_npc_get_position, PTR("me"), LW(11), LW(12), LW(13))
+    USER_FUNC(spm::evt_npc::evt_npc_animflag_onoff, PTR("me"), 1, 128)
+    USER_FUNC(spm::evt_eff::evt_eff, 0, PTR("dmen_warp"), 0, LW(11), LW(12), LW(13), 0, 0, 0, 0, 0, 0, 0, 0)
+    USER_FUNC(spm::evt_snd::evt_snd_sfxon_3d, PTR("SFX_BS_DMN_GOOUT1"), LW(11), LW(12), LW(13))
+    USER_FUNC(spm::evt_npc::evt_npc_tribe_agb_async, 287)
+    WAIT_MSEC(250)
+    USER_FUNC(spm::evt_npc::evt_npc_get_hp, PTR("me"), LW(0))
+    USER_FUNC(spm::evt_eff::evt_eff, 0, PTR("dmen_warp"), 0, LW(11), LW(12), LW(13), 0, 0, 0, 0, 0, 0, 0, 0)
+    USER_FUNC(spm::evt_npc::evt_npc_entry_from_template, 0, 287, LW(11), LW(12), LW(13), LW(10), EVT_NULLPTR)
+    USER_FUNC(spm::evt_npc::evt_npc_set_hp, LW(10), LW(0))
+    USER_FUNC(spm::evt_snd::evt_snd_sfxon_3d, PTR("SFX_BS_DMN_APPEAR1"), LW(11), LW(12), LW(13))
+    USER_FUNC(spm::evt_npc::evt_npc_set_unitwork, LW(10), 8, spm::dan::dan_shadoo_defeat_evt)
+    USER_FUNC(spm::evt_npc::evt_npc_delete, PTR("me"))
+  END_IF()
+RETURN_FROM_CALL()
+
 spm::evtmgr::EvtScriptCode luigiPatch[] = { IF_NOT_EQUAL(LW(0), 1) };
 spm::evtmgr::EvtScriptCode luigiPatch2[] = { USER_FUNC(spm::evt_npc::evt_npc_arc_to, PTR("me"), LW(0), LW(1), LW(2), 500, FLOAT(0.0), FLOAT(55.0), 0, 0, 0) };
 
@@ -490,7 +511,8 @@ static void hookShadooScripts()
   evtpatch::patchEvtInstruction(luigi_attack_script, 3, luigiPatch);
   evtpatch::hookEvt(spm::dan::dan_70_init_evt, 39, (spm::evtmgr::EvtScriptCode*)shadooSave);
   
-  evtpatch::hookEvtReplace(spm::npcdrv::npcEnemyTemplates[422].unkScript7, 10, dark_mario_attack_patch);
+  evtpatch::hookEvtReplace(spm::npcdrv::npcEnemyTemplates[287].unkScript7, 10, dark_mario_attack_patch);
+  evtpatch::hookEvtReplace(spm::npcdrv::npcEnemyTemplates[288].unkScript7, 12, dark_peach_attack_patch);
 
   evtpatch::hookEvtReplaceBlock(spm::dan::dan_shadoo_fight_evt, 1, (spm::evtmgr::EvtScriptCode*)shadoo_fight_evt, 91);
   evtpatch::patchEvtInstruction(spm::dan::dan_shadoo_main_evt, 126, EVT_CAST(USER_FUNC(spm::evt_snd::evt_snd_bgmon, 0, PTR("BGM_BTL_BOSS_STG4"))));
