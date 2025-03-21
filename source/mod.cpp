@@ -145,8 +145,9 @@ int checkBossHealth() {
   u32 health = 0;
   s32 plotValue = globals->gsw0;
   if (globals->gsw[24] == 0) globals->gsw[24] = 1;
+  s32 num = spm::npcdrv::npcGetMaxEntries();
     if (plotValue == 0x21){
-    for (int i = 0; i < 535; i++) {
+    for (int i = 0; i < num; i++) {
       if (NPCWork->entries[i].tribeId == 270) {
         health = NPCWork->entries[i].hp;
       }
@@ -155,7 +156,7 @@ int checkBossHealth() {
             bossSequence = 1;
               }
     if (plotValue == 0x67){
-    for (int i = 0; i < 535; i++) {
+    for (int i = 0; i < num; i++) {
       if (NPCWork->entries[i].tribeId == 315) {
         health = NPCWork->entries[i].hp;
       }
@@ -164,31 +165,31 @@ int checkBossHealth() {
       globals->gsw0 = 0xb9;
     }
     if (plotValue == 0x73){
-    for (int i = 0; i < 535; i++) {
+    for (int i = 0; i < num; i++) {
       if (NPCWork->entries[i].tribeId == 286) {
         health = NPCWork->entries[i].hp;
       }
     }}
     if (plotValue == 0x7c){
-    for (int i = 0; i < 535; i++) {
+    for (int i = 0; i < num; i++) {
       if (NPCWork->entries[i].tribeId == 318) {
         health = NPCWork->entries[i].hp;
       }
     }}
     if (plotValue == 0xaa){
-    for (int i = 0; i < 535; i++) {
+    for (int i = 0; i < num; i++) {
       if (NPCWork->entries[i].tribeId == 295) {
         health = NPCWork->entries[i].hp;
       }
     }}
     if (plotValue == 0xab){
-    for (int i = 0; i < 535; i++) {
+    for (int i = 0; i < num; i++) {
       if (NPCWork->entries[i].tribeId == 296) {
         health = NPCWork->entries[i].hp;
       }
     }}
     if (plotValue == 0xbe){
-    for (int i = 0; i < 535; i++) {
+    for (int i = 0; i < num; i++) {
       if (NPCWork->entries[i].tribeId == 271) {
         health = NPCWork->entries[i].hp;
       }
@@ -200,75 +201,75 @@ int checkBossHealth() {
         bossSequence = 1;
     }
     if (plotValue == 0xd5){
-    for (int i = 0; i < 535; i++) {
+    for (int i = 0; i < num; i++) {
       if (NPCWork->entries[i].tribeId == 272) {
         health = NPCWork->entries[i].hp;
       }
     }}
     if (plotValue == 0xdb){
-    for (int i = 0; i < 535; i++) {
+    for (int i = 0; i < num; i++) {
       if (NPCWork->entries[i].tribeId == 319) {
         health = NPCWork->entries[i].hp;
       }
     }}
     if (plotValue == 0x112){
-    for (int i = 0; i < 535; i++) {
+    for (int i = 0; i < num; i++) {
       if (NPCWork->entries[i].tribeId == 282) {
         health = NPCWork->entries[i].hp;
       }
     }}
     if (plotValue == 0x11d){
-    for (int i = 0; i < 535; i++) {
+    for (int i = 0; i < num; i++) {
       if (NPCWork->entries[i].tribeId == 300) {
         health = NPCWork->entries[i].hp;
       }
     }}
     if (plotValue == 0x139){
-    for (int i = 0; i < 535; i++) {
+    for (int i = 0; i < num; i++) {
       if (NPCWork->entries[i].tribeId == 316) {
         health = NPCWork->entries[i].hp;
       }
     }}
     if (plotValue == 0x160){
-    for (int i = 0; i < 535; i++) {
+    for (int i = 0; i < num; i++) {
       if (NPCWork->entries[i].tribeId == 327) {
         health = NPCWork->entries[i].hp;
       }
     }}
     if (plotValue == 0x16c){
-    for (int i = 0; i < 535; i++) {
+    for (int i = 0; i < num; i++) {
       if (NPCWork->entries[i].tribeId == 273) {
         health = NPCWork->entries[i].hp;
       }
     }}
     if (plotValue == 0x191){
-    for (int i = 0; i < 535; i++) {
+    for (int i = 0; i < num; i++) {
       if (NPCWork->entries[i].tribeId == 292) {
         health = NPCWork->entries[i].hp;
       }
     }}
     if (plotValue == 0x19a){
-    for (int i = 0; i < 535; i++) {
+    for (int i = 0; i < num; i++) {
       if (NPCWork->entries[i].tribeId == 305) {
         wii::os::OSReport("%d\n", NPCWork->entries[i].m_Anim.m_nPoseId);
         health = NPCWork->entries[i].hp;
       }
     }}
     if (plotValue == 0x19c){
-    for (int i = 0; i < 535; i++) {
+    for (int i = 0; i < num; i++) {
       if (NPCWork->entries[i].tribeId == 309) {
         bossSequence = 3;
         return health = 99999;
       }
     }}
     if (plotValue == 0x19f){
-    for (int i = 0; i < 535; i++) {
+    for (int i = 0; i < num; i++) {
       if (NPCWork->entries[i].tribeId == 309) {
         return health = NPCWork->entries[i].hp;
       }
     }}
-    for (int i = 0; i < 535; i++) {
-      if (NPCWork->entries[i].tribeId == 282 || NPCWork->entries[i].tribeId == 273 || NPCWork->entries[i].tribeId == 292 || NPCWork->entries[i].tribeId == 330 || NPCWork->entries[i].tribeId == 331 || NPCWork->entries[i].tribeId == 333 || NPCWork->entries[i].tribeId == 532) {
+    for (int i = 0; i < num; i++) {
+      if (NPCWork->entries[i].tribeId == 332 ||NPCWork->entries[i].tribeId == 282 || NPCWork->entries[i].tribeId == 273 || NPCWork->entries[i].tribeId == 292 || NPCWork->entries[i].tribeId == 330 || NPCWork->entries[i].tribeId == 331 || NPCWork->entries[i].tribeId == 333 || NPCWork->entries[i].tribeId == 532) {
         if (NPCWork->entries[i].flag8 & 0x80000000 != 0)
         return NPCWork->entries[i].hp;
       }

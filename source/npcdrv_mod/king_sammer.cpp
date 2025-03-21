@@ -435,7 +435,7 @@ static void createKingNpc() {
   npcEnemyTemplates[32].unkDefinitionTable = nullptr;
   npcTribes[532].catchCardItemId = 299;
   npcTribes[532].catchCardDefense = 1;
-  npcTribes[532].maxHp = 20;
+  npcTribes[532].maxHp = 1;
   npcTribes[532].killXp = 5000;
   npcTribes[532].coinDropChance = 100;
   npcTribes[532].coinDropBaseCount = 50;
