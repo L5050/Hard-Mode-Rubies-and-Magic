@@ -77,7 +77,7 @@ void setBoomDamageRadiusFloat() {
       "bctr\n"              // Branch to boomer
       :
       : "r"(addr_ret), "r"(addr_float)
-      : "r12", "27", "memory"
+      : "r12", "memory"
   );
 }
 
@@ -93,7 +93,7 @@ void setBoomVisualFloat() {
       "bctr\n"              // Branch to boomer
       :
       : "r"(addr_ret), "r"(addr_float)
-      : "r12", "4", "memory"
+      : "r12", "memory"
   );
 }
 
