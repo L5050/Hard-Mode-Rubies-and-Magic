@@ -43,7 +43,6 @@
 
 namespace mod {
 
-
 EVT_BEGIN(ninja_pls_dont_crash)
 DO(0)
     USER_FUNC(check_for_ninja, LW(0))
@@ -506,7 +505,6 @@ static void hookShadooScripts()
   evtpatch::hookEvtReplace(luigi_attack_script, 9, luigiUnk7_1);
   evtpatch::hookEvtReplace(luigi_attack_script, 2, luigiUnk7_2);
   evtpatch::patchEvtInstruction(luigi_attack_script, 3, luigiPatch);
-  evtpatch::patchEvtInstruction(luigi_attack_script, 3, luigiPatch);
   evtpatch::hookEvt(spm::dan::dan_70_init_evt, 39, (spm::evtmgr::EvtScriptCode*)shadooSave);
   
   evtpatch::hookEvtReplace(spm::npcdrv::npcEnemyTemplates[287].unkScript7, 10, dark_mario_attack_patch);
@@ -517,6 +515,9 @@ static void hookShadooScripts()
   evtpatch::hookEvt(spm::npcdrv::npcEnemyTemplates[183].onSpawnScript, 85, (spm::evtmgr::EvtScriptCode*)returnChunksDeathScript);
   evtpatch::hookEvt(spm::npcdrv::npcEnemyTemplates[183].unkScript6, 1, (spm::evtmgr::EvtScriptCode*)hookChunksDeathScript); //Fix for if O'Chunks is killed outside of boss rooms
   evtpatch::hookEvt(spm::npcdrv::npcEnemyTemplates[422].unkScript3, 71, (spm::evtmgr::EvtScriptCode*)mariounk3);
+  evtpatch::hookEvt(spm::npcdrv::npcEnemyTemplates[288].unkScript3, 82, (spm::evtmgr::EvtScriptCode*)mariounk3);
+  //spm::evtmgr::EvtScriptCode* dark_peach_on_hit = getInstructionEvtArg(spm::npcdrv::npcEnemyTemplates[288].unkScript3, 62, 0);
+  evtpatch::hookEvtReplace(spm::npcdrv::npcEnemyTemplates[288].unkScript3, 62, turnNull);
 }
 
 void shadooMain() {
