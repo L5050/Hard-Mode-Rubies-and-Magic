@@ -136,7 +136,7 @@ static void initPixlArray()
 
     for (u16 i = 0; i < POUCH_FAIRY_ITEM_MAX; i++)
     {
-        if (mario_pouch_wp->pixls[i].selectable == true && i != (0x0E7 - 221))
+        if (mario_pouch_wp->pixls[i].selectable == true && i != (0x0E7 - 221) && i != (0x0E1 - 221))
         {
             curPixlArray[pixlArrayIndex] = mario_pouch_wp->pixls[i].itemType;
             pixlArrayIndex += 1;

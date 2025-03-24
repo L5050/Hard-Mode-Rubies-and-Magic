@@ -71,10 +71,16 @@ static void hookDimentioScripts()
   #ifdef SPM_US0
   spm::evtmgr::EvtScriptCode* boxScriptMain = getInstructionEvtArg(boxScript, 18, 0);
   evtpatch::hookEvtReplace(boxScriptMain, 233, (spm::evtmgr::EvtScriptCode*)makePeachDie);
+  #endif
+
+  #ifdef SPM_US2
+  // nothing else needs to be done on US2
   #else
+  //PAL has a different script offset
   spm::evtmgr::EvtScriptCode* boxScriptMain = getInstructionEvtArg(boxScript, 23, 0);
   evtpatch::hookEvtReplace(boxScriptMain, 238, (spm::evtmgr::EvtScriptCode*)makePeachDie);
   #endif
+  
   evtpatch::hookEvtReplace(shootScript, 32, (spm::evtmgr::EvtScriptCode*)turnNull);
   spm::map_data::MapData * ls3_12_md = spm::map_data::mapDataPtr("ls3_12");
   spm::evtmgr::EvtScriptCode* postChase = getInstructionEvtArg(ls3_12_md->initScript, 77, 0);

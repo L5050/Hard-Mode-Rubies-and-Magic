@@ -298,9 +298,15 @@ static void patchMarioDamage(){
                 if (damage == 0)
                 {
                   if (tribeId > -1)  {
+                  spm::npcdrv::NPCTribe* tribe = &spm::npcdrv::npcTribes[tribeId];
+                  s32 id = tribe->catchCardItemId;
+                  if (id != NULL && spm::mario_pouch::pouchCheckHaveItem(id) == true) {
                   int cards = spm::mario_pouch::pouchGetCardCount(spm::npcdrv::npcTribes[tribeId].catchCardItemId);
                   cards = cards + 1;
                   damage = marioCalcDamageToEnemy(damageType, tribeId) / cards;
+                  } else {
+                    damage = marioCalcDamageToEnemy(damageType, tribeId);
+                  }
                   }
                   switch (damageType)
                   {
@@ -344,13 +350,15 @@ static void patchMarioDamage(){
                 }
               }
               if (damage > 0) return damage;
-              if (tribeId > -1){
-              if (spm::npcdrv::npcTribes[tribeId].catchCardItemId != 0){
-              int cards = spm::mario_pouch::pouchGetCardCount(spm::npcdrv::npcTribes[tribeId].catchCardItemId);
-              cards = cards + 1;
-              return marioCalcDamageToEnemy(damageType, tribeId) / cards;
-            }
-          }
+              if (tribeId > -1)  {
+                spm::npcdrv::NPCTribe* tribe = &spm::npcdrv::npcTribes[tribeId];
+                s32 id = tribe->catchCardItemId;
+                if (id != NULL && spm::mario_pouch::pouchCheckHaveItem(id) == true) {
+                int cards = spm::mario_pouch::pouchGetCardCount(spm::npcdrv::npcTribes[tribeId].catchCardItemId);
+                cards = cards + 1;
+                return marioCalcDamageToEnemy(damageType, tribeId) / cards;
+                }
+              }
           return marioCalcDamageToEnemy(damageType, tribeId);
             }
         );
