@@ -7,7 +7,7 @@
 #include <spm/evtmgr_cmd.h>
 #include <wii/os.h>
 
-namespace mod {
+namespace mod::patch_dan {
 
 EVT_DECLARE(reset_piccolo)
 EVT_DECLARE_USER_FUNC(resetPiccolo, 0)

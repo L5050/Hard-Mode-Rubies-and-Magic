@@ -30,7 +30,7 @@
 using namespace spm::npcdrv;
 using namespace spm::evt_npc;
 
-namespace mod {
+namespace mod::patch_dan {
 
 EVT_BEGIN(wrackle_load_async)
     USER_FUNC(evt_npc_tribe_agb_async, 81)

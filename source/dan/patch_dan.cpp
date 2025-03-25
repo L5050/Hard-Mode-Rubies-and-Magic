@@ -30,11 +30,7 @@
 #include <spm/memory.h>
 #include <wii/os.h>
 
-extern "C" {
-
-}
-
-namespace mod {
+namespace mod::patch_dan {
 
 int curPixlArray[17]; // I want this to be a u16 but for some fucking reason it causes the game to shit everywhere if I make it one so you get int instead
 
