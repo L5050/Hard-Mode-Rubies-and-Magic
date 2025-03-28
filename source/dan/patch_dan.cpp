@@ -57,8 +57,10 @@ void hookFleepTime(spm::npcdrv::NPCEntry *npcEntry)
 
 void* boomerRetLocation1 = &spm::mario_motion::boomerFuseMain + 0x9D8;
 void* boomerRetLocation2 = &spm::mario_motion::boomerFuseMain + 0x90C;
+void* npcTakeDamageRetLocation = &spm::npcdrv::npcTakeDamage + 0x1E0;
 f32 floatValue = 0.5; // Damage Radius
 f32 floatValue2 = 1.0; // Visual Radius
+f32 cudgeFloat = 0.3; // Cudge I-Frames
 
 // I never. ever. want to do this again. :Nicesoftlock:
 void setBoomDamageRadiusFloat() {
@@ -71,6 +73,22 @@ void setBoomDamageRadiusFloat() {
       "lwz 12, 0(%0)\n"     // Load boomer
       "mtctr 12\n"          // Move to ctr
       "bctr\n"              // Branch to boomer
+      :
+      : "r"(addr_ret), "r"(addr_float)
+      : "r12", "memory"
+  );
+}
+
+void setCudgeFloat() {
+  uintptr_t addr_float = (uintptr_t)&cudgeFloat;
+  uintptr_t addr_ret = (uintptr_t)&npcTakeDamageRetLocation;
+
+  asm (
+      "lfs 0, 0(%1)\n"     // Load the float into f0
+      
+      "lwz 12, 0(%0)\n"     // Load Cudge
+      "mtctr 12\n"          // Move to ctr
+      "bctr\n"              // Branch to Cudge
       :
       : "r"(addr_ret), "r"(addr_float)
       : "r12", "memory"
@@ -145,6 +163,8 @@ static void patchBoomer()
 {
   writeBranch( & spm::mario_motion::boomerFuseMain, 0x9D4, setBoomDamageRadiusFloat);
   writeBranch( & spm::mario_motion::boomerFuseMain, 0x908, setBoomVisualFloat);
+  writeBranch( & spm::npcdrv::npcTakeDamage, 0x1DC, setCudgeFloat);
+  
   writeWord(spm::mario_motion::boomerFuseMain, 0x904, 0x60000000);
 }
 
