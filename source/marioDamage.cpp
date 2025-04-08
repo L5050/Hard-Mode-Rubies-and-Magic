@@ -51,7 +51,9 @@ int (*marioCalcDamageToEnemy)(s32 damageType, s32 tribeId);
 
 s32 new_npcDamageMario(spm::npcdrv::NPCEntry *npcEntry, spm::npcdrv::NPCPart *part, wii::mtx::Vec3 *position, u32 param_4, s32 damage, u32 flags) {
   if (npcEntry == nullptr) return npcDamageMario(npcEntry, part, position, param_4, damage, flags);
-      if (npcEntry->tribeId == 284) {
+  wii::os::OSReport("npctribe og hook %d\n", npcEntry->tribeId);
+      if (npcEntry->tribeId == 284 || npcEntry->tribeId == 256) {
+        wii::os::OSReport("unitwork %d\n", npcEntry->unitWork[0]);
         if (npcEntry->unitWork[0] == 3) {
           return npcDamageMario(npcEntry, part, position, param_4, damage, 1);
         }

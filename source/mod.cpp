@@ -1900,13 +1900,18 @@ setFloats:
           return;
         }
 
+static inline void patchStats()
+{
+  setBossHP();
+  setBossDef();
+}
+
 void main() {
   wii::os::OSReport("SPM Rel Loader: the mod has ran!\n");
   titleScreenCustomTextPatch();
   patchSetInv();
   standard_death_script = getStandardDeathScript();
-  setBossHP();
-  setBossDef();
+  patchStats();
   marioDamageMain();
   patchItems();
   patchCooking();
