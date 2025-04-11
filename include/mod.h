@@ -30,6 +30,7 @@ int* getBossSequence();
 EVT_DECLARE_USER_FUNC(compareStrings, 3)
 EVT_DECLARE_USER_FUNC(displayBossHealth, 0)
 EVT_DECLARE_USER_FUNC(checkBboxChonkyBoi, 1)
+EVT_DECLARE_USER_FUNC(evt_npc_entry_autoname, 3)
 void main();
 
 }

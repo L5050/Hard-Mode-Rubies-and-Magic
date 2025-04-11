@@ -39,7 +39,9 @@
 #include <spm/evt_npc.h>
 #include <spm/npc_ninja.h>
 #include <spm/evtmgr_cmd.h>
+#include <msl/stdio.h>
 #include <wii/os.h>
+#include <wii/mtx.h>
 
 namespace mod {
 
@@ -66,21 +68,21 @@ static spm::npcdrv::NPCTribeAnimDef peachDefs[] = {
     {28, "J_2B"},
     {29, "J_2C"},
     {30, "J_2D"},
-    {31, "G_1"},
-    {32, "G_3"},
+    {31, "N_11"},
+    {32, "N_12"},
     {33, "G_2"}
 };
 
-static spm::npcdrv::NPCTribeAnimDef peachDefs2[] = {
-    {0, "S_1"},
-    {1, "W_1"},
-    {2, "R_1"},
-    {3, "T_1"},
-    {4, "D_2"},
-    {6, "D_2"},
-    {7, "D_2"},
-    {8, "D_2"},
-    {9, "D_2"},
+static spm::npcdrv::NPCTribeAnimDef marioDefs[] = {
+    {0, "mario_S_1"},
+    {1, "mario_W_1"},
+    {2, "mario_R_1"},
+    {3, "mario_T_1"},
+    {4, "mario_D_2"},
+    {6, "mario_D_2"},
+    {7, "mario_D_2"},
+    {8, "mario_D_2"},
+    {9, "mario_D_2"},
     {10, "D_2"},
     {11, "D_2"},
     {12, "D_2"},
@@ -94,10 +96,18 @@ static spm::npcdrv::NPCTribeAnimDef peachDefs2[] = {
     {28, "J_2B"},
     {29, "J_2C"},
     {30, "J_2D"},
-    {31, "G_1"},
-    {32, "G_3"},
+    {31, "mario_N_11"},
+    {32, "mario_N_12"},
     {33, "G_2"}
 };
+
+static spm::npcdrv::NPCTribeAnimDef boomDefs[] = {
+    {0, "A_1B"},
+    {1, "A_1A"},
+    {25, "Z_1"}
+};
+
+static spm::npcdrv::NPCTribeAnimDef* ogMarioDefs = spm::npcdrv::npcTribes[330].animDefs;
 
 EVT_BEGIN(ninja_pls_dont_crash)
 DO(0)
@@ -129,7 +139,7 @@ DO(0)
     END_IF()
     USER_FUNC(spm::evt_npc::evt_npc_get_position, LW(10), LW(11), LW(12), LW(13))
     WAIT_FRM(1)
-WHILE()
+WHILE()/*
 USER_FUNC(spm::evt_snd::evt_snd_bgmon_f_d, 0, PTR("BGM_BTL_BOSS_KOOPA1"), 1000)
 USER_FUNC(spm::evt_mario::evt_mario_key_off, 0)
 USER_FUNC(spm::evt_npc::evt_npc_tribe_agb_async, 285)
@@ -451,7 +461,7 @@ DO(0)
     USER_FUNC(spm::evt_npc::evt_npc_get_position, LW(10), LW(11), LW(12), LW(13))
     WAIT_FRM(1)
 WHILE()
-END_IF()
+END_IF()*/
 USER_FUNC(spm::evt_snd::evt_snd_bgmon_f_d, 0, PTR("BGM_BTL_BOSS_STG5"), 1000)
 RETURN_FROM_CALL()
 
@@ -469,8 +479,38 @@ s32 returnChonkyFarts(spm::evtmgr::EvtEntry * evtEntry, bool firstRun) {
   return 2;
 }
 
+s32 evt_npc_detect_player(spm::evtmgr::EvtEntry * evtEntry, bool firstRun)
+{
+  spm::npcdrv::NPCEntry *npc = evtEntry->ownerNPC;
+  spm::npcdrv::NPCPart *part = spm::npcdrv::npcGetPartById(npc, 1);
+  spm::mario::MarioWork *marioWork = spm::mario::marioGetPtr();
+
+  f32 distance = wii::mtx::PSVECSquareDistance(&npc->position,&marioWork->position);
+  spm::evtmgr::EvtVar *args = (spm::evtmgr::EvtVar *)evtEntry->pCurData;
+  f32 radius = spm::evtmgr_cmd::evtGetFloat(evtEntry, args[0]);
+  if (distance < radius) {
+    spm::evtmgr_cmd::evtSetValue(evtEntry, args[1], 1);
+    return 2;
+  }
+  spm::evtmgr_cmd::evtSetValue(evtEntry, args[1], 0);
+  return 2;
+}
+
+s32 evt_npc_entry_autoname(spm::evtmgr::EvtEntry * evtEntry, bool firstRun)
+{
+  spm::evtmgr::EvtVar *args = (spm::evtmgr::EvtVar *)evtEntry->pCurData;
+  char name[32];
+  s32 id = spm::npcdrv::npcdrv_wp->nextTemplateNpcId;
+  msl::stdio::sprintf(name,"npc_%08x", id);
+  
+  spm::npcdrv::NPCEntry* entry = spm::npcdrv::npcEntry(name, args[0], args[1], 0);
+  spm::evtmgr_cmd::evtSetValue(evtEntry, args[2], entry->name);
+  return 2;
+}
+
 EVT_DECLARE_USER_FUNC(grabChonkyFarts, 1)
 EVT_DECLARE_USER_FUNC(returnChonkyFarts, 1)
+EVT_DECLARE_USER_FUNC(evt_npc_detect_player, 2)
 
 EVT_BEGIN(returnChunksDeathScript)
   USER_FUNC(grabChonkyFarts, LW(10))
@@ -510,63 +550,150 @@ EVT_BEGIN(shadooSave)
   USER_FUNC(spm::evt_npc::evt_npc_tribe_agb_async, 288)
 RETURN_FROM_CALL()
 
-EVT_BEGIN(dark_mario_attack_patch)
-  WAIT_FRM(1)
-  USER_FUNC(spm::evt_mario::evt_mario_get_character, LW(0))
-  IF_EQUAL(LW(0), 2)
-    USER_FUNC(spm::evt_npc::evt_npc_set_move_mode, PTR("me"), 0)
-    USER_FUNC(spm::evt_npc::evt_npc_get_position, PTR("me"), LW(11), LW(12), LW(13))
-    USER_FUNC(spm::evt_npc::evt_npc_animflag_onoff, PTR("me"), 1, 128)
-    USER_FUNC(spm::evt_eff::evt_eff, 0, PTR("dmen_warp"), 0, LW(11), LW(12), LW(13), 0, 0, 0, 0, 0, 0, 0, 0)
-    USER_FUNC(spm::evt_snd::evt_snd_sfxon_3d, PTR("SFX_BS_DMN_GOOUT1"), LW(11), LW(12), LW(13))
-    USER_FUNC(spm::evt_npc::evt_npc_tribe_agb_async, 288)
-    USER_FUNC(spm::evt_npc::evt_npc_tribe_agb_async, 264)
-    WAIT_MSEC(250)
-    USER_FUNC(spm::evt_npc::evt_npc_get_hp, PTR("me"), LW(0))
-    USER_FUNC(spm::evt_npc::evt_npc_entry_from_template, 0, 288, LW(11), LW(12), LW(13), LW(10), EVT_NULLPTR)
-    USER_FUNC(spm::evt_npc::evt_npc_set_hp, LW(10), LW(0))
-    USER_FUNC(spm::evt_npc::evt_npc_teleport_effect, 1, LW(10))
-    USER_FUNC(spm::evt_npc::evt_npc_set_unitwork, LW(10), 8, spm::dan::dan_shadoo_defeat_evt)
-    USER_FUNC(spm::evt_npc::evt_npc_delete, PTR("me"))
-  END_IF()
-RETURN_FROM_CALL()
+EVT_BEGIN(peachGrab)
+  USER_FUNC(evt_npc_entry_autoname, PTR("FRY_throw"), 0, LW(10))
+  USER_FUNC(spm::evt_npc::evt_npc_set_rgba, LW(10), 0, 0, 0, 0xff)
+  USER_FUNC(spm::evt_npc::evt_npc_get_position, PTR("me"), LW(11), LW(12), LW(13))
+  USER_FUNC(spm::evt_npc::evt_npc_set_position, LW(10), LW(11), LW(12), LW(13))
+  LBL(0)
+RETURN()
 
-EVT_BEGIN(dark_peach_attack_patch)
-  WAIT_FRM(1)
-  USER_FUNC(spm::evt_mario::evt_mario_get_character, LW(0))
-  IF_NOT_EQUAL(LW(0), 2)
-    USER_FUNC(spm::evt_npc::evt_npc_set_move_mode, PTR("me"), 0)
-    USER_FUNC(spm::evt_npc::evt_npc_get_position, PTR("me"), LW(11), LW(12), LW(13))
-    USER_FUNC(spm::evt_npc::evt_npc_animflag_onoff, PTR("me"), 1, 128)
-    USER_FUNC(spm::evt_eff::evt_eff, 0, PTR("dmen_warp"), 0, LW(11), LW(12), LW(13), 0, 0, 0, 0, 0, 0, 0, 0)
-    USER_FUNC(spm::evt_snd::evt_snd_sfxon_3d, PTR("SFX_BS_DMN_GOOUT1"), LW(11), LW(12), LW(13))
-    USER_FUNC(spm::evt_npc::evt_npc_tribe_agb_async, 287)
-    WAIT_MSEC(250)
-    USER_FUNC(spm::evt_npc::evt_npc_get_hp, PTR("me"), LW(0))
-    USER_FUNC(spm::evt_npc::evt_npc_entry_from_template, 0, 287, LW(11), LW(12), LW(13), LW(10), EVT_NULLPTR)
-    USER_FUNC(spm::evt_npc::evt_npc_set_hp, LW(10), LW(0))
-    USER_FUNC(spm::evt_npc::evt_npc_teleport_effect, 1, LW(10))
-    USER_FUNC(spm::evt_npc::evt_npc_set_unitwork, LW(10), 8, spm::dan::dan_shadoo_defeat_evt)
-    USER_FUNC(spm::evt_npc::evt_npc_delete, PTR("me"))
-  END_IF()
-RETURN_FROM_CALL()
+EVT_END()
 
-EVT_BEGIN(dark_peach_summon_bomb)
-  USER_FUNC(spm::evt_sub::evt_sub_random, 2, LW(0))
-  IF_EQUAL(LW(0), 0)
-    USER_FUNC(spm::evt_npc::evt_npc_set_property, PTR("me"), 14, PTR(peachDefs))
-    USER_FUNC(spm::evt_npc::evt_npc_get_position, PTR("me"), LW(11), LW(12), LW(13))
-    USER_FUNC(spm::evt_npc::evt_npc_entry_from_template, 0, 264, LW(11), LW(12), LW(13), LW(10), EVT_NULLPTR)
-    USER_FUNC(spm::evt_npc::evt_npc_set_anim, PTR("me"), 10, 0)
-    USER_FUNC(spm::evt_npc::evt_npc_wait_anim_end, PTR("me"), 1)
-    USER_FUNC(spm::evt_npc::evt_npc_set_anim, PTR("me"), 11, 0)
-    USER_FUNC(spm::evt_npc::evt_npc_wait_anim_end, PTR("me"), 1)
-    WAIT_FRM(5)
-    USER_FUNC(spm::evt_npc::evt_npc_set_unitwork, LW(10), 1, 1)
-    USER_FUNC(spm::evt_npc::evt_npc_set_property, PTR("me"), 14, PTR(peachDefs2))
+EVT_BEGIN(peachReplacementAttackScript)
+    LBL(1)
+    USER_FUNC(spm::evt_npc::evt_npc_set_move_mode, PTR("me"), 1)
+    USER_FUNC(spm::evt_npc::func_80224804)
+    USER_FUNC(spm::evt_npc::evt_npc_flag8_onoff, PTR("me"), 1, 2048)
+    USER_FUNC(spm::evt_npc::func_801049ec, PTR("me"))
+    USER_FUNC(spm::evt_npc::func_80104a3c, PTR("me"))
+    USER_FUNC(spm::evt_npc::evt_npc_set_property, PTR("me"), 37, FLOAT(1.0))
+    USER_FUNC(spm::evt_npc::func_801072a4, PTR("me"))
+    //USER_FUNC(spm::evt_sub::evt_sub_random, 2, LW(0))
+    RUN_EVT(peachGrab)
+    IF_EQUAL(LW(0), 1)
+      USER_FUNC(spm::evt_npc::evt_npc_set_property, PTR("me"), 14, PTR(peachDefs))
+      USER_FUNC(spm::evt_npc::evt_npc_get_position, PTR("me"), LW(11), LW(12), LW(13))
+      USER_FUNC(spm::evt_mario::evt_mario_get_pos, LW(5), LW(6), LW(7))
+      IF_LARGE(LW(11), LW(5))
+        SUB(LW(11), 40)
+        USER_FUNC(spm::evt_npc::evt_npc_set_axis_movement_unit, PTR("me"), -1)
+      ELSE()
+        ADD(LW(11), 40)
+        USER_FUNC(spm::evt_npc::evt_npc_set_axis_movement_unit, PTR("me"), 1)
+      END_IF()
+      USER_FUNC(spm::evt_npc::evt_npc_entry_from_template, 0, 390, LW(11), LW(12), LW(13), LW(10), EVT_NULLPTR)
+      USER_FUNC(spm::evt_npc::evt_npc_set_rgba, LW(10), 0, 0, 0, 0xff)
+      USER_FUNC(spm::evt_npc::func_80108194, PTR("me"), 0)
+      USER_FUNC(spm::evt_npc::evt_npc_set_anim, PTR("me"), 31, 1)
+      USER_FUNC(spm::evt_npc::evt_npc_wait_anim_end, PTR("me"), 1)
+      USER_FUNC(spm::evt_npc::evt_npc_set_anim, PTR("me"), 32, 1)
+      USER_FUNC(spm::evt_npc::evt_npc_wait_anim_end, PTR("me"), 1)
+      USER_FUNC(spm::evt_npc::evt_npc_animflag_onoff, LW(10), 0, 128)
+      USER_FUNC(spm::evt_snd::evt_snd_sfxon_3d, PTR("SFX_F_BOMB_SET2"), LW(11), LW(12), LW(13))
+      WAIT_FRM(5)
+      USER_FUNC(spm::evt_npc::evt_npc_set_unitwork, LW(10), 1, 1)
+    END_IF()
+    USER_FUNC(spm::evt_npc::func_80224804)
+    USER_FUNC(spm::evt_npc::evt_npc_flag8_onoff, PTR("me"), 0, 2048)
+    LBL(0)
+    USER_FUNC(spm::evt_npc::func_80224874)
+    USER_FUNC(spm::evt_npc::func_80225380)
+    WAIT_FRM(1)
+    USER_FUNC(spm::evt_mario::evt_mario_get_character, LW(0))
+    IF_NOT_EQUAL(LW(0), 2)
+      USER_FUNC(spm::evt_npc::evt_npc_set_move_mode, PTR("me"), 0)
+      USER_FUNC(spm::evt_npc::evt_npc_get_position, PTR("me"), LW(11), LW(12), LW(13))
+      USER_FUNC(spm::evt_npc::evt_npc_animflag_onoff, PTR("me"), 1, 128)
+      USER_FUNC(spm::evt_eff::evt_eff, 0, PTR("dmen_warp"), 0, LW(11), LW(12), LW(13), 0, 0, 0, 0, 0, 0, 0, 0)
+      USER_FUNC(spm::evt_snd::evt_snd_sfxon_3d, PTR("SFX_BS_DMN_GOOUT1"), LW(11), LW(12), LW(13))
+      USER_FUNC(spm::evt_npc::evt_npc_tribe_agb_async, 287)
+      WAIT_MSEC(250)
+      USER_FUNC(spm::evt_npc::evt_npc_get_hp, PTR("me"), LW(0))
+      USER_FUNC(spm::evt_npc::evt_npc_entry_from_template, 0, 287, LW(11), LW(12), LW(13), LW(10), EVT_NULLPTR)
+      USER_FUNC(spm::evt_npc::evt_npc_set_hp, LW(10), LW(0))
+      USER_FUNC(spm::evt_npc::evt_npc_teleport_effect, 1, LW(10))
+      USER_FUNC(spm::evt_npc::evt_npc_set_unitwork, LW(10), 8, spm::dan::dan_shadoo_defeat_evt)
+      USER_FUNC(spm::evt_npc::evt_npc_delete, PTR("me"))
+    END_IF()
     GOTO(0)
+    RETURN()
+EVT_END()
+
+EVT_BEGIN(shadowBoomerTickDown)
+LBL(0)
+USER_FUNC(spm::evt_npc::evt_npc_get_position, LW(10), LW(11), LW(12), LW(13))
+USER_FUNC(spm::evt_mario::evt_mario_get_pos, LW(5), LW(6), LW(7))
+SUB(LW(11), LW(5))
+IF_SMALL(LW(11), 100)
+  IF_LARGE(LW(11), -100)
+    USER_FUNC(spm::evt_npc::evt_npc_set_unitwork, LW(10), 1, 1)
+    RETURN()
   END_IF()
-RETURN_FROM_CALL()
+END_IF()
+WAIT_FRM(1)
+GOTO(0)
+EVT_END()
+
+EVT_BEGIN(marioReplacementAttackScript)
+    USER_FUNC(spm::evt_npc::evt_npc_set_move_mode, PTR("me"), 1)
+    USER_FUNC(spm::evt_npc::func_802154fc)
+    USER_FUNC(spm::evt_npc::func_80215514)
+    USER_FUNC(spm::evt_npc::func_801049ec, PTR("me"))
+    USER_FUNC(spm::evt_npc::func_80104a3c, PTR("me"))
+    USER_FUNC(spm::evt_npc::func_801072a4, PTR("me"))
+    USER_FUNC(spm::evt_sub::evt_sub_random, 1, LW(0))
+    IF_EQUAL(LW(0), 0)
+      USER_FUNC(spm::evt_npc::evt_npc_set_property, PTR("me"), 14, PTR(marioDefs))
+      USER_FUNC(spm::evt_npc::evt_npc_get_position, PTR("me"), LW(11), LW(12), LW(13))
+      USER_FUNC(spm::evt_mario::evt_mario_get_pos, LW(5), LW(6), LW(7))
+      IF_LARGE(LW(11), LW(5))
+        SUB(LW(11), 25)
+        USER_FUNC(spm::evt_npc::evt_npc_set_axis_movement_unit, PTR("me"), -1)
+      ELSE()
+        ADD(LW(11), 25)
+        USER_FUNC(spm::evt_npc::evt_npc_set_axis_movement_unit, PTR("me"), 1)
+      END_IF()
+      USER_FUNC(spm::evt_npc::evt_npc_entry_from_template, 0, 390, LW(11), LW(12), LW(13), LW(10), EVT_NULLPTR)
+      USER_FUNC(spm::evt_npc::evt_npc_set_property, LW(10), 14, PTR(boomDefs))
+      USER_FUNC(spm::evt_npc::func_80108194, LW(10), 0)
+      USER_FUNC(spm::evt_npc::evt_npc_set_rgba, LW(10), 0, 0, 0, 0xff)
+      USER_FUNC(spm::evt_npc::func_80108194, PTR("me"), 0)
+      USER_FUNC(spm::evt_npc::evt_npc_set_anim, PTR("me"), 31, 1)
+      USER_FUNC(spm::evt_npc::evt_npc_wait_anim_end, PTR("me"), 1)
+      USER_FUNC(spm::evt_npc::evt_npc_set_anim, PTR("me"), 32, 1)
+      USER_FUNC(spm::evt_npc::evt_npc_wait_anim_end, PTR("me"), 1)
+      USER_FUNC(spm::evt_npc::evt_npc_set_anim, LW(10), 1, 1)
+      USER_FUNC(spm::evt_npc::evt_npc_animflag_onoff, LW(10), 0, 128)
+      USER_FUNC(spm::evt_snd::evt_snd_sfxon_3d, PTR("SFX_F_BOMB_SET2"), LW(11), LW(12), LW(13))
+      RUN_EVT(shadowBoomerTickDown)
+      WAIT_FRM(5)
+      USER_FUNC(spm::evt_npc::evt_npc_set_property, PTR("me"), 14, PTR(ogMarioDefs))
+    END_IF()
+    LBL(0)
+    USER_FUNC(spm::evt_npc::func_80215540)
+    USER_FUNC(spm::evt_npc::func_80215f44)
+    WAIT_FRM(1)
+    USER_FUNC(spm::evt_mario::evt_mario_get_character, LW(0))
+    IF_EQUAL(LW(0), 2)
+      USER_FUNC(spm::evt_npc::evt_npc_set_move_mode, PTR("me"), 0)
+      USER_FUNC(spm::evt_npc::evt_npc_get_position, PTR("me"), LW(11), LW(12), LW(13))
+      USER_FUNC(spm::evt_npc::evt_npc_animflag_onoff, PTR("me"), 1, 128)
+      USER_FUNC(spm::evt_eff::evt_eff, 0, PTR("dmen_warp"), 0, LW(11), LW(12), LW(13), 0, 0, 0, 0, 0, 0, 0, 0)
+      USER_FUNC(spm::evt_snd::evt_snd_sfxon_3d, PTR("SFX_BS_DMN_GOOUT1"), LW(11), LW(12), LW(13))
+      USER_FUNC(spm::evt_npc::evt_npc_tribe_agb_async, 288)
+      USER_FUNC(spm::evt_npc::evt_npc_tribe_agb_async, 390)
+      WAIT_MSEC(250)
+      USER_FUNC(spm::evt_npc::evt_npc_get_hp, PTR("me"), LW(0))
+      USER_FUNC(spm::evt_npc::evt_npc_entry_from_template, 0, 288, LW(11), LW(12), LW(13), LW(10), EVT_NULLPTR)
+      USER_FUNC(spm::evt_npc::evt_npc_set_hp, LW(10), LW(0))
+      USER_FUNC(spm::evt_npc::evt_npc_teleport_effect, 1, LW(10))
+      USER_FUNC(spm::evt_npc::evt_npc_set_unitwork, LW(10), 8, spm::dan::dan_shadoo_defeat_evt)
+      USER_FUNC(spm::evt_npc::evt_npc_delete, PTR("me"))
+    END_IF()
+    GOTO(0)
+    RETURN()
+EVT_END()
 
 spm::evtmgr::EvtScriptCode luigiPatch[] = { IF_NOT_EQUAL(LW(0), 1) };
 spm::evtmgr::EvtScriptCode luigiPatch2[] = { USER_FUNC(spm::evt_npc::evt_npc_arc_to, PTR("me"), LW(0), LW(1), LW(2), 500, FLOAT(0.0), FLOAT(55.0), 0, 0, 0) };
@@ -581,9 +708,8 @@ static void hookShadooScripts()
   evtpatch::patchEvtInstruction(luigi_attack_script, 3, luigiPatch);
   evtpatch::hookEvt(spm::dan::dan_70_init_evt, 39, (spm::evtmgr::EvtScriptCode*)shadooSave);
   
-  evtpatch::hookEvtReplace(spm::npcdrv::npcEnemyTemplates[287].unkScript7, 10, dark_mario_attack_patch);
-  evtpatch::hookEvtReplace(spm::npcdrv::npcEnemyTemplates[288].unkScript7, 10, dark_peach_attack_patch);
-  evtpatch::hookEvt(spm::npcdrv::npcEnemyTemplates[288].unkScript7, 8, dark_peach_summon_bomb);
+  spm::npcdrv::npcEnemyTemplates[288].unkScript7 = peachReplacementAttackScript;
+  spm::npcdrv::npcEnemyTemplates[287].unkScript7 = marioReplacementAttackScript;
 
   evtpatch::hookEvtReplaceBlock(spm::dan::dan_shadoo_fight_evt, 1, (spm::evtmgr::EvtScriptCode*)shadoo_fight_evt, 91);
   evtpatch::patchEvtInstruction(spm::dan::dan_shadoo_main_evt, 126, EVT_CAST(USER_FUNC(spm::evt_snd::evt_snd_bgmon, 0, PTR("BGM_BTL_BOSS_STG4"))));
