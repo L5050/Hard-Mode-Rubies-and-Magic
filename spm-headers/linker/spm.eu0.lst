@@ -209,6 +209,7 @@
 800d4960:evt_sub_get_language
 800d74a0:func_800d74a0
 800d7930:evt_sub_item_select_menu
+800d8700:func_800d8700
 // more
 
 // evtmgr.c
@@ -440,6 +441,7 @@
 // not sure where you want this
 8040E598:evt_cutscene_pure_heart
 804E5C20:evt_memcard_save
+80436a68:wracktail_defeat
 
 // evt_paper.c
 8010c600:evt_paper_entry
@@ -730,6 +732,7 @@
 801e3a1c:npcDropItem
 801ca1a4:func_801ca1a4
 801c8b44:npcFleeped
+801e5fd0:func_801e5fd0
 // more
 // data
 805ae188:npcdrv_wp
