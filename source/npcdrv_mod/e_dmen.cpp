@@ -72,10 +72,9 @@ static void hookDimentioScripts()
   spm::evtmgr::EvtScriptCode* boxScriptMain = getInstructionEvtArg(boxScript, 18, 0);
   evtpatch::hookEvtReplace(boxScriptMain, 233, (spm::evtmgr::EvtScriptCode*)makePeachDie);
   #endif
-
-  #ifdef SPM_US2
   // nothing else needs to be done on US2
-  #else
+
+  #ifdef SPM_EU0
   //PAL has a different script offset
   spm::evtmgr::EvtScriptCode* boxScriptMain = getInstructionEvtArg(boxScript, 23, 0);
   evtpatch::hookEvtReplace(boxScriptMain, 238, (spm::evtmgr::EvtScriptCode*)makePeachDie);
