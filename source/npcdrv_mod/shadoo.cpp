@@ -708,6 +708,7 @@ static void hookShadooScripts()
   evtpatch::hookEvt(spm::dan::dan_70_init_evt, 39, (spm::evtmgr::EvtScriptCode*)shadooSave);
   
   spm::npcdrv::npcEnemyTemplates[288].unkScript7 = peachReplacementAttackScript;
+  spm::npcdrv::npcTribes[332].voltShroomStunTime = 0;
   spm::npcdrv::npcEnemyTemplates[287].unkScript7 = marioReplacementAttackScript;
 
   evtpatch::hookEvtReplaceBlock(spm::dan::dan_shadoo_fight_evt, 1, (spm::evtmgr::EvtScriptCode*)shadoo_fight_evt, 91);

@@ -161,8 +161,13 @@ static void initPixlArray()
 
 static void patchBoomer()
 {
+  #ifdef SPM_EU0
   writeBranch( & spm::mario_motion::boomerFuseMain, 0x9D4, setBoomDamageRadiusFloat);
   writeBranch( & spm::mario_motion::boomerFuseMain, 0x908, setBoomVisualFloat);
+  #else
+  writeBranch( & spm::mario_motion::boomerFuseMain, 0x9B0, setBoomDamageRadiusFloat);
+  writeBranch( & spm::mario_motion::boomerFuseMain, 0x8E4, setBoomVisualFloat);
+  #endif
   writeBranch( & spm::npcdrv::npcTakeDamage, 0x1DC, setCudgeFloat);
   
   writeWord(spm::mario_motion::boomerFuseMain, 0x904, 0x60000000);
