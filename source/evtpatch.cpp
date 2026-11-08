@@ -67,13 +67,13 @@ s32 evtOpcodeReturnFromCall(spm::evtmgr::EvtEntry* entry) {
 /// @return The return value of the opcode's handler function
 static s32 evtmgrCmdExtraCases(spm::evtmgr::EvtEntry* entry) {
     switch (entry->curOpcode) {
-        case EvtOpcode::Call:
-            return evtOpcodeCall(entry);
-        case EvtOpcode::ReturnFromCall:
-            return evtOpcodeReturnFromCall(entry);
-        default:
-            assert(0, "evtmgrCmdExtraCases error");
-            __builtin_unreachable();
+    case EvtOpcode::Call:
+        return evtOpcodeCall(entry);
+    case EvtOpcode::ReturnFromCall:
+        return evtOpcodeReturnFromCall(entry);
+    default:
+        assert(0, "evtmgrCmdExtraCases error");
+        __builtin_unreachable();
     }
 }
 
@@ -83,14 +83,15 @@ static s32 evtmgrCmdExtraCases(spm::evtmgr::EvtEntry* entry) {
 void evt_patch_make_jump_table(EvtEntry* parentEntry, EvtScriptCode* childScript)
 {
     s32 n;
-    EvtScriptCode * pScriptHead;
+    EvtScriptCode* pScriptHead;
     s32 cmd;
     s32 cmdn;
     s32 id;
     pScriptHead = childScript;
     n = 0;
+    bool done = false;
 
-    while (true)
+    while (!done)
     {
         cmd = *pScriptHead & 0xffff;
         cmdn = *pScriptHead >> 16;
@@ -101,21 +102,18 @@ void evt_patch_make_jump_table(EvtEntry* parentEntry, EvtScriptCode* childScript
 
         switch (cmd)
         {
-            case 1:
-                goto end;
-
-            case EvtOpcode::ReturnFromCall:
-                goto end;
-
-            case 3:
-                parentEntry->labelIds[n] = (s8) id;
-                parentEntry->jumptable[n] = pScriptHead;
-                n++;
+        case 1:
+        case EvtOpcode::ReturnFromCall:
+            done = true;
+            break;
+        case 3:
+            parentEntry->labelIds[n] = (s8)id;
+            parentEntry->jumptable[n] = pScriptHead;
+            n++;
             break;
         }
-
     }
-    end: return;
+    return;
 }
 
 static void evtmgrCmdExtensionPatch() {
@@ -131,7 +129,7 @@ static void evtDeletePatch() {
     evtDeleteReal = patch::hookFunction(spm::evtmgr::evtDelete, [](EvtEntry* entry) {
         evtmgrDestroyReturnStack(getEvtEntryIdx(entry));
         return evtDeleteReal(entry);
-    });
+        });
 }
 
 static void (*evtmgrReInitReal)();
@@ -143,7 +141,7 @@ static void evtmgrReInitPatch() {
             }
         }
         return evtmgrReInitReal();
-    });
+        });
 }
 
 /// @brief Patches evtmgrCmd and other related code to allow and handle custom opcodes
@@ -173,7 +171,7 @@ s32 getLineOffset(EvtScriptCode* script, s32 line) {
     wii::os::OSReport("getLineOffset(): script: [%p], line: %d\n", script, line);
     EvtScriptCode* instruction = script;
     s32 offset = 0;
-    for (int i = 0; i < line-1; i++) { // 1-indexed
+    for (int i = 0; i < line - 1; i++) { // 1-indexed
         do {
             s32 length = getInstructionLength(instruction);
             offset += length;
@@ -294,7 +292,7 @@ void hookEvtReplaceBlock(EvtScriptCode* script, s32 lineStart, EvtScriptCode* ds
 /// @param offsetEnd The offset to come back to once `dst` is done executing, in EvtScriptCodes, from the start of the script
 void hookEvtReplaceBlockByOffset(EvtScriptCode* script, s32 offsetStart, EvtScriptCode* dst, s32 offsetEnd) {
     EvtScriptCode* src = script + offsetStart;
-    s32 length = offsetEnd-offsetStart;
+    s32 length = offsetEnd - offsetStart;
     assert(isStartOfInstruction(src), "Cannot hook on non-instruction, what are you doing :sob:");
     msl::string::memset(src, 0, length * sizeof(EvtScriptCode)); // if i have time i'll change offsets to be in bytes like a normal person
     insertTrampolineCall(src, dst);

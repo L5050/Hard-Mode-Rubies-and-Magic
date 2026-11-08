@@ -67,6 +67,33 @@
 using namespace std;
 namespace mod {
 
+// This only includes bosses with a health bar
+enum BossTribeId : s32 {
+  OCHUNKS_1 = 270,
+  OCHUNKS_2 = 271,
+  OCABBAGE = 272,
+  OCHUNKS_3 = 273,
+  MIMI = 282,
+  DIMENTIO_1 = 286,
+  DIMENTIO_2 = 289,
+  DIMENTIO_3 = 292,
+  MR_L = 295,
+  BROBOT = 296,
+  BROBOT_L_TYPE = 300,
+  COUNT_BLECK = 305,
+  SUPER_DIMENTIO = 309,
+  BOWSER_1 = 315,
+  BOWSER_2 = 316,
+  FRANCIS = 318,
+  KING_CROACUS = 319,
+  BONECHILL = 327,
+  DARK_MARIO = 330,
+  DARK_LUIGI = 331,
+  DARK_PEACH = 332,
+  DARK_BOWSER = 333,
+  UNUSED_CUSTOM_KING_SAMMER = 532
+};
+
 spm::mario::MarioWork* marioWork = spm::mario::marioGetPtr();
 spm::spmario::SpmarioGlobals* globals = spm::spmario::gp;
 int bossSequence = 1;
@@ -137,166 +164,70 @@ int checkBossHealth() {
   if (spm::mario::marioKeyOffChk() == 1) {
     return 0;
   }
-  if (bossHealth != nullptr) {
+  if (bossHealth != nullptr) { // Check if existing bosshealth global has been set
     if (*bossHealth >= 1) {
       return *bossHealth;
     }
-    else {
-      bossHealth = nullptr;
-    }
+    bossHealth = nullptr;
   }
   spm::npcdrv::NPCWork* NPCWork = spm::npcdrv::npcGetWorkPtr();
-  u32 health = 0;
   s32 plotValue = globals->gsw0;
   if (globals->gsw[24] == 0) globals->gsw[24] = 1;
-  s32 num = spm::npcdrv::npcGetMaxEntries();
-  if (plotValue == 0x21) {
-    for (int i = 0; i < num; i++) {
-      if (NPCWork->entries[i].tribeId == 270) {
-        health = NPCWork->entries[i].hp;
-      }
-    }
-  }
-  if (plotValue == 0x66) {
+  s32 maxNpcs = spm::npcdrv::npcGetMaxEntries();
+  
+  // Plot based checks
+  if (plotValue == 102 || plotValue == 212) { // Sequence primer for 3-1 Bowser and O'Cabbage
     bossSequence = 1;
   }
-  if (plotValue == 0x67) {
-    for (int i = 0; i < num; i++) {
-      if (NPCWork->entries[i].tribeId == 315) {
-        health = NPCWork->entries[i].hp;
-      }
-    }
+
+  if (plotValue == 183) { // Jasperoid's Bane (block code skip)
+    globals->gsw0 = 185; // This should honestly go somewhere else
   }
-  if (plotValue == 0xb7) {
-    globals->gsw0 = 0xb9;
-  }
-  if (plotValue == 0x73) {
-    for (int i = 0; i < num; i++) {
-      if (NPCWork->entries[i].tribeId == 286) {
-        health = NPCWork->entries[i].hp;
-      }
-    }
-  }
-  if (plotValue == 0x7c) {
-    for (int i = 0; i < num; i++) {
-      if (NPCWork->entries[i].tribeId == 318) {
-        health = NPCWork->entries[i].hp;
-      }
-    }
-  }
-  if (plotValue == 0xaa) {
-    for (int i = 0; i < num; i++) {
-      if (NPCWork->entries[i].tribeId == 295) {
-        health = NPCWork->entries[i].hp;
-      }
-    }
-  }
-  if (plotValue == 0xab) {
-    for (int i = 0; i < num; i++) {
-      if (NPCWork->entries[i].tribeId == 296) {
-        health = NPCWork->entries[i].hp;
-      }
-    }
-  }
-  if (plotValue == 0xbe) {
-    for (int i = 0; i < num; i++) {
-      if (NPCWork->entries[i].tribeId == 271) {
-        health = NPCWork->entries[i].hp;
-      }
-      if (NPCWork->entries[i].tribeId == 289) {
-        health = NPCWork->entries[i].hp;
-      }
-    }
-  }
-  if (plotValue == 0xd4) {
-    bossSequence = 1;
-  }
-  if (plotValue == 0xd5) {
-    for (int i = 0; i < num; i++) {
-      if (NPCWork->entries[i].tribeId == 272) {
-        health = NPCWork->entries[i].hp;
-      }
-    }
-  }
-  if (plotValue == 0xdb) {
-    for (int i = 0; i < num; i++) {
-      if (NPCWork->entries[i].tribeId == 319) {
-        health = NPCWork->entries[i].hp;
-      }
-    }
-  }
-  if (plotValue == 0x112) {
-    for (int i = 0; i < num; i++) {
-      if (NPCWork->entries[i].tribeId == 282) {
-        health = NPCWork->entries[i].hp;
-      }
-    }
-  }
-  if (plotValue == 0x11d) {
-    for (int i = 0; i < num; i++) {
-      if (NPCWork->entries[i].tribeId == 300) {
-        health = NPCWork->entries[i].hp;
-      }
-    }
-  }
-  if (plotValue == 0x139) {
-    for (int i = 0; i < num; i++) {
-      if (NPCWork->entries[i].tribeId == 316) {
-        health = NPCWork->entries[i].hp;
-      }
-    }
-  }
-  if (plotValue == 0x160) {
-    for (int i = 0; i < num; i++) {
-      if (NPCWork->entries[i].tribeId == 327) {
-        health = NPCWork->entries[i].hp;
-      }
-    }
-  }
-  if (plotValue == 0x16c) {
-    for (int i = 0; i < num; i++) {
-      if (NPCWork->entries[i].tribeId == 273) {
-        health = NPCWork->entries[i].hp;
-      }
-    }
-  }
-  if (plotValue == 0x191) {
-    for (int i = 0; i < num; i++) {
-      if (NPCWork->entries[i].tribeId == 292) {
-        health = NPCWork->entries[i].hp;
-      }
-    }
-  }
-  if (plotValue == 0x19a) {
-    for (int i = 0; i < num; i++) {
-      if (NPCWork->entries[i].tribeId == 305) {
-        wii::os::OSReport("%d\n", NPCWork->entries[i].m_Anim.m_nPoseId);
-        health = NPCWork->entries[i].hp;
-      }
-    }
-  }
-  if (plotValue == 0x19c) {
-    for (int i = 0; i < num; i++) {
-      if (NPCWork->entries[i].tribeId == 309) {
+
+  if (plotValue == 412) {
+    for (int i = 0; i < maxNpcs; i++) {
+      if (NPCWork->entries[i].tribeId == SUPER_DIMENTIO) {
         bossSequence = 3;
-        return health = 99999;
+        return 99999; // Invincible SD override
       }
     }
   }
-  if (plotValue == 0x19f) {
-    for (int i = 0; i < num; i++) {
-      if (NPCWork->entries[i].tribeId == 309) {
-        return health = NPCWork->entries[i].hp;
-      }
+
+  // Main boss check loop
+  for (int i = 0; i < maxNpcs; i++) {
+    switch (NPCWork->entries[i].tribeId) {
+      case COUNT_BLECK:
+        wii::os::OSReport("%d\n", NPCWork->entries[i].m_Anim.m_nPoseId); // Debug message
+      case OCHUNKS_1:
+      case OCHUNKS_2:
+      case OCABBAGE:
+      case OCHUNKS_3:
+      case MIMI:
+      case DIMENTIO_1:
+      case DIMENTIO_2:
+      case DIMENTIO_3:
+      case MR_L:
+      case BROBOT:
+      case BROBOT_L_TYPE:
+      // case COUNT_BLECK:
+      case SUPER_DIMENTIO:
+      case BOWSER_1:
+      case BOWSER_2:
+      case FRANCIS:
+      case KING_CROACUS:
+      case BONECHILL:
+      case DARK_MARIO:
+      case DARK_LUIGI:
+      case DARK_PEACH:
+      case DARK_BOWSER:
+      case UNUSED_CUSTOM_KING_SAMMER:
+        if (NPCWork->entries[i].flag8 & 0x80000000 != 0) { // If NPC is not marked for deletion
+          return NPCWork->entries[i].hp;
+        }
     }
   }
-  for (int i = 0; i < num; i++) {
-    if (NPCWork->entries[i].tribeId == 332 || NPCWork->entries[i].tribeId == 282 || NPCWork->entries[i].tribeId == 273 || NPCWork->entries[i].tribeId == 292 || NPCWork->entries[i].tribeId == 330 || NPCWork->entries[i].tribeId == 331 || NPCWork->entries[i].tribeId == 333 || NPCWork->entries[i].tribeId == 532) {
-      if (NPCWork->entries[i].flag8 & 0x80000000 != 0)
-        return NPCWork->entries[i].hp;
-    }
-  }
-  return health;
+  // Backup, return 0 if no boss found
+  return 0;
 }
 
 static void bossHealthDisplay()
@@ -474,35 +405,35 @@ static void titleScreenCustomTextPatch()
 }
 static void setBossHP()
 {
-  spm::npcdrv::npcTribes[270].maxHp = 15; //O'Chunks 1
-  spm::npcdrv::npcTribes[315].maxHp = 10; //Bowser 1
-  spm::npcdrv::npcTribes[286].maxHp = 12; //Dimentio 1
-  spm::npcdrv::npcTribes[318].maxHp = 25; //Francis
-  spm::npcdrv::npcTribes[295].maxHp = 16; //Mr. L
-  spm::npcdrv::npcTribes[271].maxHp = 20; //O'Chunks 2
-  spm::npcdrv::npcTribes[289].maxHp = 10; //Dimentio 2
-  spm::npcdrv::npcTribes[272].maxHp = 20; //O'Cabbage
-  //spm::npcdrv::npcTribes[319].maxHp = 20; //King Croacus
-  spm::npcdrv::npcTribes[282].maxHp = 20; //Mimi
-  spm::npcdrv::npcTribes[300].maxHp = 150; //Brobot L-Type
-  spm::npcdrv::npcTribes[316].maxHp = 12; //Bowser 2
-  spm::npcdrv::npcTribes[327].maxHp = 90; //Bonechill
-  spm::npcdrv::npcTribes[273].maxHp = 30; //O'Chunks 3
-  spm::npcdrv::npcTribes[292].maxHp = 20; //Dimentio 3
-  spm::npcdrv::npcTribes[305].maxHp = 25; //Count Bleck
-  spm::npcdrv::npcTribes[309].maxHp = 170; //Super Dimentio
-  spm::npcdrv::npcTribes[330].maxHp = 20; //Dark Mario
-  spm::npcdrv::npcTribes[331].maxHp = 12; //Dark Luigi
-  spm::npcdrv::npcTribes[332].maxHp = 20; //Dark Peach
-  spm::npcdrv::npcTribes[333].maxHp = 12; //Dark Bowser
+  spm::npcdrv::npcTribes[OCHUNKS_1].maxHp = 15; //O'Chunks 1
+  spm::npcdrv::npcTribes[BOWSER_1].maxHp = 10; //Bowser 1
+  spm::npcdrv::npcTribes[DIMENTIO_1].maxHp = 12; //Dimentio 1
+  spm::npcdrv::npcTribes[FRANCIS].maxHp = 25; //Francis
+  spm::npcdrv::npcTribes[MR_L].maxHp = 16; //Mr. L
+  spm::npcdrv::npcTribes[OCHUNKS_2].maxHp = 20; //O'Chunks 2
+  spm::npcdrv::npcTribes[DIMENTIO_2].maxHp = 10; //Dimentio 2
+  spm::npcdrv::npcTribes[OCABBAGE].maxHp = 20; //O'Cabbage
+  //spm::npcdrv::npcTribes[KING_CROACUS].maxHp = 20; //King Croacus
+  spm::npcdrv::npcTribes[MIMI].maxHp = 20; //Mimi
+  spm::npcdrv::npcTribes[BROBOT_L_TYPE].maxHp = 150; //Brobot L-Type
+  spm::npcdrv::npcTribes[BOWSER_2].maxHp = 12; //Bowser 2
+  spm::npcdrv::npcTribes[BONECHILL].maxHp = 90; //Bonechill
+  spm::npcdrv::npcTribes[OCHUNKS_3].maxHp = 30; //O'Chunks 3
+  spm::npcdrv::npcTribes[DIMENTIO_3].maxHp = 20; //Dimentio 3
+  spm::npcdrv::npcTribes[COUNT_BLECK].maxHp = 25; //Count Bleck
+  spm::npcdrv::npcTribes[SUPER_DIMENTIO].maxHp = 170; //Super Dimentio
+  spm::npcdrv::npcTribes[DARK_MARIO].maxHp = 20; //Dark Mario
+  spm::npcdrv::npcTribes[DARK_LUIGI].maxHp = 12; //Dark Luigi
+  spm::npcdrv::npcTribes[DARK_PEACH].maxHp = 20; //Dark Peach
+  spm::npcdrv::npcTribes[DARK_BOWSER].maxHp = 12; //Dark Bowser
 }
 
 /*
   Gives all bosses the megabite defense stat
 */
-spm::npcdrv::NPCDefense fireDef;
 static void setBossDef() {
   spm::npcdrv::NPCDefense def;
+  spm::npcdrv::NPCDefense fireDef;
   def.type = 0x0;
   def.defense = 0x2;
   def.flags = 0x2;
@@ -523,53 +454,56 @@ static void setBossDef() {
     }
   }*/
   for (int i = 0; i < 2; i++) {//Bowser 1 defense
-    if (spm::npcdrv::npcTribes[315].partsList[i].id == 1) {
-      spm::npcdrv::npcTribes[315].partsList[i].defenses[0] = def;
+    if (spm::npcdrv::npcTribes[BOWSER_1].partsList[i].id == 1) {
+      spm::npcdrv::npcTribes[BOWSER_1].partsList[i].defenses[0] = def;
     }
   }
   for (int i = 0; i < 3; i++) {//Dimentio 1 defense
-    if (spm::npcdrv::npcTribes[286].partsList[i].id == 1) {
-      spm::npcdrv::npcTribes[286].partsList[i].defenses[0] = fireDef;
+    if (spm::npcdrv::npcTribes[DIMENTIO_1].partsList[i].id == 1) {
+      spm::npcdrv::npcTribes[DIMENTIO_1].partsList[i].defenses[0] = fireDef;
     }
-    if (spm::npcdrv::npcTribes[289].partsList[i].id == 1) {
-      spm::npcdrv::npcTribes[289].partsList[i].defenses[0] = fireDef;
+    if (spm::npcdrv::npcTribes[DIMENTIO_2].partsList[i].id == 1) {
+      spm::npcdrv::npcTribes[DIMENTIO_2].partsList[i].defenses[0] = fireDef;
     }
   }
   for (int i = 0; i < 7; i++) {//Brobot defense
-    spm::npcdrv::npcTribes[296].partsList[i].defenses[0] = def;
+    spm::npcdrv::npcTribes[BROBOT].partsList[i].defenses[0] = def;
   }
   for (int i = 0; i < 7; i++) {//O'chunks 2 defense
-    if (spm::npcdrv::npcTribes[271].partsList[i].id == 1) {
-      spm::npcdrv::npcTribes[271].partsList[i].defenses[0] = fireDef;
-      spm::npcdrv::npcTribes[271].partsList[i].defenses[5] = def;
+    if (spm::npcdrv::npcTribes[OCHUNKS_2].partsList[i].id == 1) {
+      spm::npcdrv::npcTribes[OCHUNKS_2].partsList[i].defenses[0] = fireDef;
+      spm::npcdrv::npcTribes[OCHUNKS_2].partsList[i].defenses[5] = def;
     }
   }
   //spm::npcdrv::npcTribes[282].partsList[0].defenses[0] = def;  //mimi defense
   for (int i = 0; i < 15; i++) {//Brobot L-Type defense
-    spm::npcdrv::npcTribes[300].partsList[i].defenses[0] = def;
+    spm::npcdrv::npcTribes[BROBOT_L_TYPE].partsList[i].defenses[0] = def;
   }
   for (int i = 0; i < 2; i++) {//Bowser 2 defense
-    if (spm::npcdrv::npcTribes[316].partsList[i].id == 1) {
-      spm::npcdrv::npcTribes[316].partsList[i].defenses[0] = def;
+    if (spm::npcdrv::npcTribes[BOWSER_2].partsList[i].id == 1) {
+      spm::npcdrv::npcTribes[BOWSER_2].partsList[i].defenses[0] = def;
     }
   }
+  /* Not sure what this is supposed to do but it's going out of bounds so
+  it's getting commented out for now - Vixen
   for (int i = 0; i < 9; i++) {//Underchomp defense
     if (spm::npcdrv::npcTribes[316].partsList[i].id == 1) {
       spm::npcdrv::npcTribes[316].partsList[i].defenses[0] = def;
     }
   }
+  */
   for (int i = 0; i < 21; i++) {//Bonechill defense
-    if (spm::npcdrv::npcTribes[327].partsList[i].id == 2) {
-      spm::npcdrv::npcTribes[327].partsList[i].defenses[2] = def;
+    if (spm::npcdrv::npcTribes[BONECHILL].partsList[i].id == 2) {
+      spm::npcdrv::npcTribes[BONECHILL].partsList[i].defenses[2] = def;
     }
-    if (spm::npcdrv::npcTribes[327].partsList[i].id == 3) {
-      spm::npcdrv::npcTribes[327].partsList[i].defenses[2] = def;
+    if (spm::npcdrv::npcTribes[BONECHILL].partsList[i].id == 3) {
+      spm::npcdrv::npcTribes[BONECHILL].partsList[i].defenses[2] = def;
     }
-    if (spm::npcdrv::npcTribes[327].partsList[i].id == 4) {
-      spm::npcdrv::npcTribes[327].partsList[i].defenses[2] = def;
+    if (spm::npcdrv::npcTribes[BONECHILL].partsList[i].id == 4) {
+      spm::npcdrv::npcTribes[BONECHILL].partsList[i].defenses[2] = def;
     }
   }
-  spm::npcdrv::npcTribes[304].partsList[0].defenses[0] = def;
+  spm::npcdrv::npcTribes[304].partsList[0].defenses[0] = def; // Nastasia for some reason?
   spm::npcdrv::npcTribes[306].partsList[0].defenses[0] = holeDef1; // if we dont do this then bleck's black holes can be jumped on without being absorbed
   spm::npcdrv::npcTribes[306].partsList[0].defenses[1] = holeDef2; // its stupid and I fucking hate it
 
