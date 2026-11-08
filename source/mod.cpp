@@ -484,14 +484,6 @@ static void setBossDef() {
       spm::npcdrv::npcTribes[BOWSER_2].partsList[i].defenses[0] = def;
     }
   }
-  /* Not sure what this is supposed to do but it's going out of bounds so
-  it's getting commented out for now - Vixen
-  for (int i = 0; i < 9; i++) {//Underchomp defense
-    if (spm::npcdrv::npcTribes[316].partsList[i].id == 1) {
-      spm::npcdrv::npcTribes[316].partsList[i].defenses[0] = def;
-    }
-  }
-  */
   for (int i = 0; i < 21; i++) {//Bonechill defense
     if (spm::npcdrv::npcTribes[BONECHILL].partsList[i].id == 2) {
       spm::npcdrv::npcTribes[BONECHILL].partsList[i].defenses[2] = def;
